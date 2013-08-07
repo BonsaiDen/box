@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0",
+  "name": "box",
+  "description": "A minimal 2D physics engine",
+  "keywords": [
+    "physics engine",
+    "2d"
+  ],
+  "homepage": "",
+  "author": "Ivo Wetzel <ivo.wetzel@googlemail.com> (https://github.com/BonsaiDen)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BonsaiDen/box"
+  },
+  "bugs": {
+    "url": "https://github.com/BonsaiDen/box/issues"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "./lib/box.js",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.6.2",
+    "grunt-contrib-watch": "~0.5.1",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-mocha-test": "~0.6.2"
+  },
+  "engines": {
+    "node": ">=0.8",
+    "npm": ">= 1"
+  },
+  "license": "MIT"
+}
