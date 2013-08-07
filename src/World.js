@@ -6,6 +6,7 @@ var EPSILON = 0.0001;
 function World(gravity, steps, iterations) {
 
     this.steps = steps || 10;
+    this.interp = 1 / this.steps;
     this.iterations = iterations || 10;
     this.gravity = gravity || new Vector2(0.0, 50.0);
 
@@ -31,9 +32,9 @@ World.prototype = {
         // Perform the world update in smaller steps
         // This will reduce the amount of jitter when multiple objects
         // are stacked on top of each other
-        var i, l, s = 1 / this.steps;
+        var i, l;
         for(i = 0; i < this.steps; i++) {
-            this.step(dt * s);
+            this.step(dt * this.interp);
         }
 
         // Reset the forces after all steps are done

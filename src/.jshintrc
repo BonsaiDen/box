@@ -2,11 +2,14 @@
     // Pre-defined project globals
     "globals": {
         "Box": true,
-        "EPSILON": true,
-        "Vector2": true,
-        "Manifold": true,
         "Body": true,
         "AABB": true,
+        "Manifold": true,
+        "Vector2": true,
+        "Solver": true,
+
+        "EPSILON": true,
+
         "extend": true,
         "round": true
     },
