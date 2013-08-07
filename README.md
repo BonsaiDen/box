@@ -8,7 +8,7 @@ __Feature Set__
 - Contact point information
 
 
-## Build it
+### Build it
 
     $ npm install .
     $ grunt
