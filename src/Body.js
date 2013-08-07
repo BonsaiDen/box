@@ -1,5 +1,5 @@
 // Class ----------------------------------------------------------------------
-function Body(position, size, mass, inertia) {
+function Body(position, mass, inertia) {
 
     // Defaults
     mass = mass !== undefined ? mass : 0.0;

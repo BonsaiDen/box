@@ -1,11 +1,23 @@
 // Class ----------------------------------------------------------------------
-function AABB(position, size, mass, inertia) {
 
-    this.size = new Vector2(size.x, size.y);
+/**
+  * Shape describing a Axis Aligned Bounding Box.
+  *
+  * @constructor
+  * @param {Vector2} position - The center position of the AAAB
+  * @param {Vector2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
+  * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
+  * @augments Body
+  *
+  * @api public
+  */
+function AABB(position, extend, mass, inertia) {
+
+    this.extend = new Vector2(extend.x, extend.y);
     this.min = new Vector2(0.0, 0.0);
     this.max = new Vector2(0.0, 0.0);
 
-    Body.call(this, position, size, mass, inertia);
+    Body.call(this, position, mass, inertia);
 
 }
 
@@ -15,10 +27,10 @@ extend(AABB, Body, {
 
     update: function() {
 
-        this.min.x = this.position.x - this.size.x;
-        this.max.x = this.position.x + this.size.x;
-        this.min.y = this.position.y - this.size.y;
-        this.max.y = this.position.y + this.size.y;
+        this.min.x = this.position.x - this.extend.x;
+        this.max.x = this.position.x + this.extend.x;
+        this.min.y = this.position.y - this.extend.y;
+        this.max.y = this.position.y + this.extend.y;
 
         Body.prototype.update.call(this);
 
