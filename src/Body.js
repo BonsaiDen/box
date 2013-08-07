@@ -75,7 +75,7 @@ extend(Body, null, {
     applyImpulse: function(x, y, rx, ry) {
         this.velocity.x += this.im * x;
         this.velocity.y += this.im * y;
-        this.angularVelocity.x += this.iI * (rx * y - ry * x);
+        this.angularVelocity += this.iI * (rx * y - ry * x);
     },
 
     applyForce: function(x, y) {
