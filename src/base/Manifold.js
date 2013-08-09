@@ -88,7 +88,8 @@ Manifold.prototype = {
             return;
         }
 
-        // Collision ------------------------------------------------------
+
+        // Collision ----------------------------------------------------------
         var raCrossN = rax * this.normal.y - ray * this.normal.x,
             rbCrossN = rbx * this.normal.y - rby * this.normal.x,
             imSum = a.im + b.im + (raCrossN * raCrossN) * a.iI
@@ -109,6 +110,12 @@ Manifold.prototype = {
             return;
         }
 
+        // Need to calculate again due to potentially changed angular velocity
+        rvx = this.getRelativeVelocityX(contact, a, b);
+        rvy = this.getRelativeVelocityY(contact, a, b);
+        velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
+
+        // Friction Impulse
         var tx = rvx - (this.normal.x * velAlongNormal),
             ty = rvy - (this.normal.y * velAlongNormal),
             tl = sqrt(tx * tx + ty * ty);
@@ -120,7 +127,7 @@ Manifold.prototype = {
         }
 
         // tangent magnitude
-        var jt = -(rvx * tx + rvy * ty); // load fixes slot, int32ToDouble, type barrier, unbox double
+        var jt = -(rvx * tx + rvy * ty);
         jt /= imSum;
         jt /= this.contactCount;
 
@@ -136,7 +143,7 @@ Manifold.prototype = {
 
         } else {
             tx = tx * -j * this.kineticFriction;
-            ty = ty * -j * this.kineticFriction; // TODO type barrier, unbox
+            ty = ty * -j * this.kineticFriction;
         }
 
         a.applyImpulse(-tx, -ty, rax, ray);
@@ -169,20 +176,20 @@ Manifold.prototype = {
 
     /** @private */
     getRelativeVelocityX: function(contact, a, b) {
-        var rax = contact.x - a.velocity.x,
-            rbx = contact.x - b.velocity.x;
+        var ray = contact.y - a.position.y,
+            rby = contact.y - b.position.y;
 
-        return b.velocity.x + (-b.angularVelocity * rbx)
-             - a.velocity.x - (-a.angularVelocity * rax);
+        return b.velocity.x + (-b.angularVelocity * rby)
+             - a.velocity.x - (-a.angularVelocity * ray);
     },
 
     /** @private */
     getRelativeVelocityY: function(contact, a, b) {
-        var ray = contact.y - a.velocity.y,
-            rby = contact.y - b.velocity.y;
+        var rax = contact.x - a.position.x,
+            rbx = contact.x - b.position.x;
 
-        return b.velocity.y + (b.angularVelocity * rby)
-             - a.velocity.y - (a.angularVelocity * ray);
+        return b.velocity.y + (b.angularVelocity * rbx)
+             - a.velocity.y - (a.angularVelocity * rax);
     }
 
 };
