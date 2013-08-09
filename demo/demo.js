@@ -253,8 +253,8 @@ game.addBox(new DynamicBox(game, { x: 0, y: -200 }, { x: 20, y: 20}));
 //game.addBox(new DynamicBox(game, { x: 0, y: -500 }, { x: 20, y: 20}));
 //game.addBox(new DynamicBox(game, { x: 0, y: -600 }, { x: 20, y: 20}));
 
-c.body.applyImpulse(-70, 0, 0, 0);
-d.body.applyImpulse(1500, 0, 0, 0);
+c.body.applyImpulse(new Box.Vector2(-70, 0), new Box.Vector2(0, 0));
+d.body.applyImpulse(new Box.Vector2(1500, 0), new Box.Vector2(0, 0));
 
 
 var l = game.addCircle(new DynamicCircle(game, { x: -60, y: -200}, 20));

@@ -76,13 +76,19 @@ extend(Body, null, {
         }
     },
 
-    applyImpulse: function(x, y, rx, ry) {
+    applyImpulse: function(v, a) {
+        this.applyRawImpulse(v.x, v.y, a.x, a.y);
+    },
+
+    /** @private */
+    applyRawImpulse: function(x, y, rx, ry) {
         this.velocity.x += this.im * x;
         this.velocity.y += this.im * y;
         this.angularVelocity += this.iI * (rx * y - ry * x);
     },
 
-    applyForce: function(x, y) {
+    /** @private */
+    applyRawForce: function(x, y) {
         this.force.x += x;
         this.force.y += y;
     },

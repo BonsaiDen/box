@@ -3,26 +3,38 @@ var EPSILON = 0.0001;
 
 
 // Class ----------------------------------------------------------------------
+
+/**
+  * @desc Box World
+  * @constructor
+  *
+  * @param gravity {Vector2}
+  * @param steps {Integer}
+  * @param iterations {Integer}
+  */
 function World(gravity, steps, iterations) {
 
+    // Public
     this.gravity = gravity || new Vector2(0.0, 50.0);
-    this.steps = steps || 10;
-    this.iterations = iterations || 10;
-
-    this.interp = 1 / this.steps;
-
-    // Active contacts between bodies
     this.contactCount = 0;
     this.contacts = [];
 
-    // Object lists
-    this.statics = [];
-    this.dynamics = [];
+    // Private
+    this._steps = steps || 10;
+    this._iterations = iterations || 10;
+    this._interp = 1 / this._steps;
+    this._statics = [];
+    this._dynamics = [];
 
 }
 
 
 // Statics --------------------------------------------------------------------
+
+/**
+ * @desc Epsilion value used to cut off certain calculations.
+ * @type {float} 0.0001
+ */
 World.EPSILON = EPSILON;
 
 
@@ -35,29 +47,29 @@ World.prototype = {
         // This will reduce the amount of jitter when multiple objects
         // are stacked on top of each other
         var i, l;
-        for(i = 0; i < this.steps; i++) {
-            this.step(dt * this.interp);
+        for(i = 0; i < this._steps; i++) {
+            this.step(dt * this._interp);
         }
 
         // Reset the forces after all steps are done
-        for(i = 0, l = this.dynamics.length; i < l; i++) {
-            this.dynamics[i].clearForces();
+        for(i = 0, l = this._dynamics.length; i < l; i++) {
+            this._dynamics[i].clearForces();
         }
 
     },
 
     add: function(box) {
         if (box.im !== 0) {
-            this.dynamics.push(box);
+            this._dynamics.push(box);
 
         } else {
-            this.statics.push(box);
+            this._statics.push(box);
         }
     },
 
     remove: function(box) {
-        this.statics.splice(this.statics.indexOf(box), 1);
-        this.dynamics.splice(this.dynamics.indexOf(box), 1);
+        this._statics.splice(this._statics.indexOf(box), 1);
+        this._dynamics.splice(this._dynamics.indexOf(box), 1);
     },
 
 
@@ -68,14 +80,14 @@ World.prototype = {
 
         // Temporary variables
         var i, c,
-            l = this.dynamics.length;
+            l = this._dynamics.length;
 
         // Find all collisions contacts for the current frame
         this.findContacts();
 
         // Integrate static forces into velocities and reset contacts
         for(i = 0; i < l; i++) {
-            this.dynamics[i].integrateForces(dt, this.gravity);
+            this._dynamics[i].integrateForces(dt, this.gravity);
         }
 
         // Setup collision manifolds
@@ -84,7 +96,7 @@ World.prototype = {
         }
 
         // Resolve the collisions based on the manifolds
-        for(i = 0; i < this.iterations; i++) {
+        for(i = 0; i < this._iterations; i++) {
             for(c = 0; c < this.contactCount; c++) {
                 this.contacts[c].resolveAllContacts();
             }
@@ -92,7 +104,7 @@ World.prototype = {
 
         // Integrate the new velocities
         for(i = 0; i < l; i++) {
-            this.dynamics[i].integrateVelocity(dt, this.gravity);
+            this._dynamics[i].integrateVelocity(dt, this.gravity);
         }
 
         // Correct positions to prevent resting objects from sinking
@@ -102,7 +114,7 @@ World.prototype = {
 
         // Update all objects with required information for rendering etc.
         for(i = 0; i < l; i++) {
-            this.dynamics[i].update();
+            this._dynamics[i].update();
         }
 
     },
@@ -110,22 +122,22 @@ World.prototype = {
     /** @private */
     findContacts: function() {
 
-        var dl = this.dynamics.length,
-            sl = this.statics.length;
+        var dl = this._dynamics.length,
+            sl = this._statics.length;
 
         // Manifolds are pooled, so we need to reset the length indicator
         this.contactCount = 0;
 
-        // Go through all dynamics...
+        // Go through all _dynamics...
         for(var i = 0; i < dl; i++) {
 
-            var a = this.dynamics[i];
+            var a = this._dynamics[i];
             for(var j = 0; j < sl; j++) {
-                this.checkAndSolveCollision(a, this.statics[j]);
+                this.checkAndSolveCollision(a, this._statics[j]);
             }
 
             for(j = i + 1; j < dl; j++) {
-                this.checkAndSolveCollision(a, this.dynamics[j]);
+                this.checkAndSolveCollision(a, this._dynamics[j]);
             }
 
         }

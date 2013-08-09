@@ -1,15 +1,13 @@
 // Class ----------------------------------------------------------------------
 
 /**
-  * Shape describing a Axis Aligned Bounding Box.
-  *
+  * @desc Shape describing a Axis Aligned Bounding Box.
   * @constructor
+  * @extends Body
+  *
   * @param {Vector2} position - The center position of the AAAB
   * @param {Vector2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
   * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
-  * @augments Body
-  *
-  * @api public
   */
 function AABB(position, extend, mass, inertia) {
 

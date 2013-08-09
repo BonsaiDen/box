@@ -1,4 +1,12 @@
 // Class ----------------------------------------------------------------------
+
+/**
+  * @desc Generic two dimensional vector class.
+  * @constructor
+  *
+  * @param {float} x - The X coordinate of the vector
+  * @param {float} y - The Y coordinate of the vector
+  */
 function Vector2(x, y) {
     this.x = x;
     this.y = y;
