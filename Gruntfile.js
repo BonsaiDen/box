@@ -122,10 +122,15 @@ module.exports = function(grunt) {
     grunt.registerTask('doc', function() {
 
         var esprima = require('esprima'),
+            escodegen = require('escodegen'),
             code = grunt.file.read('lib/box.js'),
             ast = esprima.parse(code, {
-
+                range: true,
+                tokens: true,
+                comment: true
             });
+
+        ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
         function walk(node, check, func, parent, data) {
 
@@ -191,10 +196,140 @@ module.exports = function(grunt) {
 
         }
 
+        function getDocComments(node) {
+
+            if (node.leadingComments) {
+
+                return node.leadingComments.filter(function(comment) {
+                    return comment.type === 'Block';
+
+                }).map(function(comment) {
+
+                    return comment.value.split('\n').map(function(line) {
+
+                        line = line.trim();
+                        if (line.substring(0, 1) === '*') {
+                            return line.substring(1).trim();
+
+                        } else {
+                            return line;
+                        }
+
+                    }).filter(function(line) {
+                        return line.length > 0;
+                    });
+
+                });
+
+            } else {
+                return [];
+            }
+
+        }
+
+        function getDoc(node) {
+
+            var doc = {
+                isConstructor: false,
+                visibility: 'public',
+                description: null,
+                parent: null,
+                params: [],
+                properties: [],
+                type: null,
+                returns: null
+            };
+
+            function getDescription(line) {
+
+                if (line.indexOf('-') !== -1) {
+                    return line.substring(line.indexOf('-') + 1).trim();
+
+                } else {
+                    return null;
+                }
+
+            }
+
+            getDocComments(node).forEach(function(comment) {
+
+                comment.forEach(function(line) {
+
+                    if ((/^@/).test(line)) {
+
+                        var params = line.substring(1).split(' '),
+                            type = params[0].toLowerCase();
+
+                        switch(type) {
+                            case 'desc':
+                            case 'description':
+                                doc.description = params.slice(1).join(' ');
+                                break;
+
+                            case 'public':
+                            case 'private':
+                                doc.visibility = type;
+                                break;
+
+                            case 'param':
+                                doc.params.push({
+                                    type: params[1],
+                                    name: params[2],
+                                    comment: getDescription(line)
+                                });
+                                break;
+
+                            case 'prop':
+                                doc.properties.push({
+                                    type: params[1],
+                                    name: params[2],
+                                    comment: getDescription(line)
+                                });
+                                break;
+
+                            case 'type':
+                                doc.type = {
+                                    name: params[1],
+                                    value: params[2] || null,
+                                    comment: getDescription(line)
+                                };
+                                break;
+
+                            case 'return':
+                            case 'returns':
+                                doc.returns = {
+                                    type: params[1],
+                                    comment: getDescription(line)
+                                };
+                                break;
+
+                            case 'augments':
+                                doc.parent = params[1];
+                                break;
+
+                            case 'constructor':
+                                doc.isConstructor = true;
+                                break;
+
+                            default:
+                                break;
+
+                        }
+
+                    }
+
+                });
+
+            });
+
+            return doc;
+
+        }
+
         function isConstructor(node, parent) {
             if (node.type === 'FunctionDeclaration') {
-                var name = node.id.name;
-                return name[0] === name[0].toUpperCase();
+                node.doc = getDoc(node);
+                return node.doc.isConstructor;
             }
         }
 
@@ -223,7 +358,7 @@ module.exports = function(grunt) {
                 && node.left.type === 'MemberExpression') {
 
                 var name = memberName(node.left);
-                if (name.split('.').length === 2 && node.right.value !== undefined) {
+                if (name.split('.').length === 2 && node.right) {
                     return name[0] === name[0].toUpperCase();
                 }
 
@@ -233,8 +368,8 @@ module.exports = function(grunt) {
         function methods(props) {
             return props.map(function(m) {
                 return {
-                    name: m.key.name,
-                    params: m.value.params
+                    doc: getDoc(m),
+                    name: m.key.name
                 };
             });
         }
@@ -242,8 +377,8 @@ module.exports = function(grunt) {
         var ctors = walk(ast, isConstructor, function(node, parent) {
             return {
                 name: node.id.name,
-                params: node.params,
                 parent: null,
+                doc: node.doc,
                 statics: [],
                 methods: [],
                 namespace: false
@@ -253,7 +388,8 @@ module.exports = function(grunt) {
         var statics = walk(ast, isStatic, function(node, parent) {
             var name = memberName(node.left).split('.');
             return {
-                name: name[0],
+                base: name[0],
+                doc: getDoc(node),
                 property: name[1],
                 value: node.right.value
             };
@@ -291,11 +427,6 @@ module.exports = function(grunt) {
 
         });
 
-        ctors.unshift({
-            name: 'Box',
-            namespace: true
-        });
-
         var classes = ctors.map(function(clas) {
 
             var methods = clas.methods;
@@ -315,7 +446,7 @@ module.exports = function(grunt) {
             });
 
             statics.filter(function(s) {
-                return s.name === clas.name;
+                return s.base === clas.name && s.property !== 'prototype';
 
             }).map(function(s) {
                 clas.statics.push(s);
@@ -325,7 +456,7 @@ module.exports = function(grunt) {
 
         });
 
-        console.log(classes);
+        grunt.file.write('doc.json', JSON.stringify(classes));
 
     });
 
