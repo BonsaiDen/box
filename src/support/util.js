@@ -14,13 +14,25 @@ function extend(clas, base, proto) {
 
 }
 
+
+// Math -----------------------------------------------------------------------
+var abs = Math.abs,
+    sqrt = Math.sqrt;
+
 function round(v) {
     var d = (v - (v | 0));
     return ~~(v + d);
 }
 
+function min(a, b) {
+    return a < b ? a : b;
+}
+
+function max(a, b) {
+    return a > b ? a : b;
+}
+
 
 // Public Exports -------------------------------------------------------------
 Box.round = round;
-Box.extend = extend;
 

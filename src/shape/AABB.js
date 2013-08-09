@@ -17,9 +17,12 @@ function AABB(position, extend, mass, inertia) {
     this.min = new Vector2(0.0, 0.0);
     this.max = new Vector2(0.0, 0.0);
 
-    Body.call(this, position, mass, inertia);
+    Body.call(this, AABB, position, mass, inertia);
 
 }
+
+// Statics --------------------------------------------------------------------
+AABB.ShapeID = 0;
 
 
 // Methods --------------------------------------------------------------------
@@ -34,18 +37,6 @@ extend(AABB, Body, {
 
         Body.prototype.update.call(this);
 
-    },
-
-    isOverlapping: function(other) {
-        if (this.max.x < other.min.x || this.min.x > other.max.x) {
-            return false;
-
-        } else if (this.max.y < other.min.y || this.min.y > other.max.y) {
-            return false;
-
-        } else {
-            return true;
-        }
     },
 
     containsAABB: function(other) {

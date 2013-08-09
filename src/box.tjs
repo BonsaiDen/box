@@ -21,6 +21,8 @@
   */
 (function(Box, undefined) {
 
+"use strict";
+
 <%= source %>
 
 })(typeof module === 'undefined' ? (window.Box = {}) : module.exports);

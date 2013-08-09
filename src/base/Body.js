@@ -1,12 +1,15 @@
 // Class ----------------------------------------------------------------------
-function Body(position, mass, inertia) {
+function Body(shape, position, mass, inertia) {
 
     // Defaults
     mass = mass !== undefined ? mass : 0.0;
     inertia = inertia !== undefined ? inertia : 0.0;
 
-    // Unique ID
+    // Indentity
     this.id = ++Body.id;
+    this.shapeId = shape.ShapeID;
+    this.group = 0;
+    this.layers = 0;
 
     // Inverse mass. 0 is used as a placeholder for infinite mass
     this.im = mass === 0.0 ? 0.0 : 1.0 / mass;
@@ -16,9 +19,9 @@ function Body(position, mass, inertia) {
 
     // How "bouncy" this box is. The higher the value, the more the box will
     // bounce of in case of a collision
-    this.restitution = 0.0;
+    this.restitution = 0.0; // 0 - 1
     this.staticFriction = 0.5;
-    this.dynamicFriction = 0.3;
+    this.kineticFriction = 0.3;
     this.noFriction = false;
 
     // Dimensions
@@ -27,9 +30,9 @@ function Body(position, mass, inertia) {
 
     // Velocities and rotation
     this.velocity = new Vector2(0.0, 0.0);
-    this.angularVelocity = 0.0;
-    this.torque = 0.0;
-    this.orientation = 0.0; // In radians
+    this.angularVelocity = 0.0; // -PI - PI
+    this.torque = 0.0; //
+    this.orientation = 0.0; // PI - PI * 2
 
     // Internal, temporary values only used during the collision phase
     this.force = new Vector2(0.0, 0.0);
@@ -89,7 +92,6 @@ extend(Body, null, {
     },
 
     clearContacts: function() {
-        this.contacts = 0;
         this.contactCount = 0;
     }
 

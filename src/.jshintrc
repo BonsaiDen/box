@@ -10,8 +10,15 @@
 
         "EPSILON": true,
 
+        "testCollision": true,
+        "resolveCollision": true,
+
         "extend": true,
-        "round": true
+        "round": true,
+        "min": true,
+        "max": true,
+        "abs": true,
+        "sqrt": true
     },
 
     // JShint
@@ -70,7 +77,7 @@
     // Functions
     "funcscope"   : true, // if only function scope should be used for scope tests
     "onevar"      : false, // if only one var statement per function should be
-    "unused"      : "vars",
+    "unused"      : false,
     "validthis"   : true, // if 'this' inside a non-constructor function is valid This is a function scoped option only.
 
     // Loops

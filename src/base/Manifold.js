@@ -1,21 +1,25 @@
 // Class ----------------------------------------------------------------------
+/** @private */
 function Manifold() {
 
+    // Bodies
     this.a = null;
     this.b = null;
-    this.e = 0.0;
-    this.sf = 0.0;
-    this.df = 0.0;
 
-    this.normal = new Vector2(0, 0);
+    // Response information
+    this.normal = new Vector2(0.0, 0.0);
     this.penetration = 0.0;
 
+    this.minRestitution = 0.0;
+    this.staticFriction = 0.0;
+    this.kineticFriction = 0.0;
+
+    // TODO extend list to support N sided polygongs
+    this.contactCount = 0;
     this.contacts = [
         new Vector2(0.0, 0.0),
         new Vector2(0.0, 0.0)
     ];
-
-    this.contactCount = 0;
 
 }
 
@@ -26,10 +30,10 @@ Manifold.prototype = {
     /**
       * Initialize the manifold by solving the collision between its two shapes.
       */
-    init: function(a, b) {
+    initializeWithBodies: function(a, b) {
         this.a = a;
         this.b = b;
-        return Solver.AABBvsAABB(this, a, b);
+        return resolveCollision(this, a, b);
     },
 
     /**
@@ -37,39 +41,38 @@ Manifold.prototype = {
       */
     setup: function(dt, gravity) {
 
-        this.e = Math.min(this.a.restitution, this.b.restitution);
-        this.sf = Math.sqrt(this.a.staticFriction * this.b.staticFriction);
-        this.df = Math.sqrt(this.a.dynamicFriction * this.b.dynamicFriction);
+        this.minRestitution = min(this.a.restitution, this.b.restitution);
 
+        // TODO is this correct?
+        this.staticFriction = sqrt(this.a.staticFriction * this.b.staticFriction);
+        this.kineticFriction = sqrt(this.a.kineticFriction * this.b.kineticFriction);
+
+        // Figure out whether this is a resting collision.
+        // In the case it is, we ignore restitution altogether.
         for(var i = 0; i < this.contactCount; i++) {
 
             var rvx = this.getRelativeVelocityX(this.contacts[i], this.a, this.b),
                 rvy = this.getRelativeVelocityY(this.contacts[i], this.a, this.b);
 
-            // Figure out whether this is a resting collision, if so do not apply
-            // any restitution
             var g = (dt * gravity.x * gravity.x) + (dt * gravity.y * gravity.y);
             if ((rvx * rvx + rvy * rvy) < g + EPSILON) {
-                this.e = 0.0;
+                this.minRestitution = 0.0;
+                break;
             }
 
         }
 
     },
 
-    /**
-      * Resolve the collision of all contacts
-      */
-    resolve: function() {
+    /** @private */
+    resolveAllContacts: function() {
         for(var i = 0; i < this.contactCount; i++) {
-            this.resolveContact(this.contacts[i], this.a, this.b);
+            this.resolveContactPoint(this.contacts[i], this.a, this.b);
         }
     },
 
-    /**
-      * Resolve a single contact point
-      */
-    resolveContact: function(contact, a, b) {
+    /** @private */
+    resolveContactPoint: function(contact, a, b) {
 
         var rax = contact.x - a.position.x,
             ray = contact.y - a.position.y,
@@ -92,7 +95,7 @@ Manifold.prototype = {
                                 + (rbCrossN * rbCrossN) * b.iI;
 
         // Calculate impulse scalar
-        var j = -(1.0 + this.e) * velAlongNormal;
+        var j = -(1.0 + this.minRestitution) * velAlongNormal;
         j /= imSum;
         j /= this.contactCount;
 
@@ -108,7 +111,7 @@ Manifold.prototype = {
 
         var tx = rvx - (this.normal.x * velAlongNormal),
             ty = rvy - (this.normal.y * velAlongNormal),
-            tl = Math.sqrt(tx * tx + ty * ty);
+            tl = sqrt(tx * tx + ty * ty);
 
         // Normalize
         if (tl > EPSILON) {
@@ -117,23 +120,23 @@ Manifold.prototype = {
         }
 
         // tangent magnitude
-        var jt = -(rvx * tx + rvy * ty);
+        var jt = -(rvx * tx + rvy * ty); // load fixes slot, int32ToDouble, type barrier, unbox double
         jt /= imSum;
         jt /= this.contactCount;
 
         // Don't apply tiny friction impulses
-        if (Math.abs(jt) < EPSILON) {
+        if (abs(jt) < EPSILON) {
             return;
         }
 
         // Coulumb's law
-        if (Math.abs(jt) < j * this.sf) {
+        if (abs(jt) < j * this.staticFriction) {
             tx = tx * jt;
             ty = ty * jt;
 
         } else {
-            tx = tx * -j * this.df;
-            ty = ty * -j * this.df;
+            tx = tx * -j * this.kineticFriction;
+            ty = ty * -j * this.kineticFriction; // TODO type barrier, unbox
         }
 
         a.applyImpulse(-tx, -ty, rax, ray);
@@ -141,20 +144,18 @@ Manifold.prototype = {
 
     },
 
-    /**
-      * This will prevent objects from sinking into each other when they're
-      * resting.
-      */
-    positionalCorrection: function() {
+    /** @private */
+    correctPositions: function() {
 
         var a = this.a,
             b = this.b;
 
-        var percent = 0.8,
-            slop = 0.02,
-            m = Math.max(this.penetration - slop, 0.0) / (a.im + b.im);
+        var percent = 0.8, // 0.1 - 1
+            slop = 0.02, // 0.01 - 0.1
+            m = max(this.penetration - slop, 0.0) / (a.im + b.im);
 
-        // Apply correctional impulse
+        // Apply correctional impulse to prevent objects from sinking into
+        // each other
         var cx = m * this.normal.x * percent,
             cy = m * this.normal.y * percent;
 
@@ -166,8 +167,7 @@ Manifold.prototype = {
 
     },
 
-
-    // Helpers ------------------------------------------------------------
+    /** @private */
     getRelativeVelocityX: function(contact, a, b) {
         var rax = contact.x - a.velocity.x,
             rbx = contact.x - b.velocity.x;
@@ -176,6 +176,7 @@ Manifold.prototype = {
              - a.velocity.x - (-a.angularVelocity * rax);
     },
 
+    /** @private */
     getRelativeVelocityY: function(contact, a, b) {
         var ray = contact.y - a.velocity.y,
             rby = contact.y - b.velocity.y;

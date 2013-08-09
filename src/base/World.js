@@ -5,13 +5,15 @@ var EPSILON = 0.0001;
 // Class ----------------------------------------------------------------------
 function World(gravity, steps, iterations) {
 
-    this.steps = steps || 10;
-    this.interp = 1 / this.steps;
-    this.iterations = iterations || 10;
     this.gravity = gravity || new Vector2(0.0, 50.0);
+    this.steps = steps || 10;
+    this.iterations = iterations || 10;
 
-    this.contacts = [];
+    this.interp = 1 / this.steps;
+
+    // Active contacts between bodies
     this.contactCount = 0;
+    this.contacts = [];
 
     // Object lists
     this.statics = [];
@@ -59,7 +61,9 @@ World.prototype = {
     },
 
 
-    // Collision detection and resolving ----------------------------------
+    // Collision detection and resolution -------------------------------------
+
+    /** @private */
     step: function(dt) {
 
         // Temporary variables
@@ -83,7 +87,7 @@ World.prototype = {
         // Resolve the collisions based on the manifolds
         for(i = 0; i < this.iterations; i++) {
             for(c = 0; c < this.contactCount; c++) {
-                this.contacts[c].resolve();
+                this.contacts[c].resolveAllContacts();
             }
         }
 
@@ -94,7 +98,7 @@ World.prototype = {
 
         // Correct positions to prevent resting objects from sinking
         for(c = 0; c < this.contactCount; c++) {
-            this.contacts[c].positionalCorrection();
+            this.contacts[c].correctPositions();
         }
 
         // Update all objects with required information for rendering etc.
@@ -104,6 +108,7 @@ World.prototype = {
 
     },
 
+    /** @private */
     findContacts: function() {
 
         var dl = this.dynamics.length,
@@ -117,33 +122,34 @@ World.prototype = {
 
             var a = this.dynamics[i];
             for(var j = 0; j < sl; j++) {
-                this.checkContact(a, this.statics[j]);
+                this.checkAndSolveCollision(a, this.statics[j]);
             }
 
             for(j = i + 1; j < dl; j++) {
-                this.checkContact(a, this.dynamics[j]);
+                this.checkAndSolveCollision(a, this.dynamics[j]);
             }
 
         }
 
     },
 
-    checkContact: function(a, b) {
+    /** @private */
+    checkAndSolveCollision: function(a, b) {
 
         var m;
-        if (a.isOverlapping(b)) {
+        if (testCollision(a, b)) {
 
             // Add a new manifold to the pool if required
             if (this.contacts.length === this.contactCount) {
-                m = new Manifold();
-                this.contacts.push(m);
+                this.contacts.push((m = new Manifold()));
 
             // Otherwise use an existing one
             } else {
                 m = this.contacts[this.contactCount];
             }
 
-            if (m.init(a, b)) {
+            // Validate the collision and response
+            if (m.initializeWithBodies(a, b)) {
                 this.contactCount++;
             }
 
