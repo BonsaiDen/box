@@ -1,15 +1,15 @@
 /*global Class, Engine, Box */
 var AbstractBox = Class(function(world, position, extend, mass) {
-    this.aabb = new Box.AABB(position, extend, mass);
-    this.aabb.user = this;
+    this.body = new Box.AABB(position, extend, mass);
+    this.body.user = this;
 
 }, {
 
     render: function(context, color) {
 
-        var p = this.aabb.pixelPosition,
-            v = this.aabb.velocity,
-            s = this.aabb.extend;
+        var p = this.body.pixelPosition,
+            v = this.body.velocity,
+            s = this.body.extend;
 
         context.save();
 
@@ -49,6 +49,82 @@ var AbstractBox = Class(function(world, position, extend, mass) {
 
 });
 
+var AbstractCircle = Class(function(world, position, radius, density) {
+    this.body = new Box.Circle(position, radius, density);
+    this.body.computeMass(density || 1);
+    this.body.user = this;
+
+}, {
+
+    render: function(context, color) {
+
+        var p = this.body.pixelPosition,
+            v = this.body.velocity,
+            r = this.body.radius,
+            o = this.body.orientation;
+
+
+        var segments = 16;
+
+        context.save();
+        context.globalAlpha = 0.25;
+        context.fillStyle = color;
+        this.drawCircle(context, o, p.x, p.y, r, segments);
+        context.fill();
+
+        context.globalAlpha = 1;
+        context.lineWidth = 2;
+        context.strokeStyle = color;
+        this.drawCircle(context, o, p.x, p.y, r, segments);
+        context.stroke();
+
+        // Orientation
+        context.beginPath();
+
+        context.moveTo(p.x, p.y);
+        context.lineTo(p.x + Math.cos(o) * r, p.y + Math.sin(o) * r);
+
+        context.stroke();
+        context.restore();
+
+    },
+
+    drawCircle: function(context, o, x, y, radius, segments) {
+
+        context.beginPath();
+
+        var e = Math.PI * 2 / segments;
+        for(var i = 0; i < segments; i++) {
+
+            var ox = x + Math.cos(o + e * i) * radius,
+                oy = y + Math.sin(o + e * i) * radius;
+
+            if (i === 0) {
+                context.moveTo(ox, oy);
+
+            } else {
+                context.lineTo(ox, oy);
+            }
+
+        }
+
+        context.closePath();
+
+    }
+
+});
+
+var DynamicCircle = Class(function(world, position, radius, density) {
+    AbstractCircle(this, world, position, radius, density);
+
+}, AbstractCircle, {
+
+    render: function(context) {
+        AbstractCircle.render(this, context, '#00ffcc');
+    }
+
+});
+
 
 var StaticBox = Class(function(world, position, extend) {
     AbstractBox(this, world, position, extend, 0);
@@ -77,7 +153,7 @@ var DynamicBox = Class(function(world, position, extend) {
 var Game = Class(function() {
 
     this.world = new Box.World(new Box.Vector2(0, 200));
-    this.boxes = [];
+    this.bodies = [];
 
     Engine(this, 'scene', 480, 480);
     this.start(30);
@@ -94,8 +170,8 @@ var Game = Class(function() {
         context.clearRect(0, 0, 480, 480);
         context.translate(240, 240);
 
-        for(var i = 0; i < this.boxes.length; i++) {
-            this.boxes[i].render(context);
+        for(var i = 0; i < this.bodies.length; i++) {
+            this.bodies[i].render(context);
         }
 
         for(i = 0; i < this.world.contactCount; i++) {
@@ -136,35 +212,52 @@ var Game = Class(function() {
             context.fillStyle = '#cc00ff';
             context.fillRect(Box.round(o.x - 1), Box.round(o.y - 1), 2, 2);
 
+        } else {
+
+            c = contacts[0];
+            context.fillStyle = '#ff0000';
+            context.fillRect(c.x - 2, c.y - 2, 4, 4);
+
         }
 
     },
 
     addBox: function(box) {
-        this.world.add(box.aabb);
-        this.boxes.push(box);
+        this.world.add(box.body);
+        this.bodies.push(box);
         return box;
+    },
+
+    addCircle: function(circle) {
+        this.world.add(circle.body);
+        this.bodies.push(circle);
+        return circle;
     }
 
 });
 
 var game = new Game();
-var ground = game.addBox(new StaticBox(this, { x: 0, y: 0 }, { x: 100, y: 20}));
-game.addBox(new StaticBox(this, { x: 150, y: 0 }, { x: 50, y: 20}));
-game.addBox(new StaticBox(this, { x: -135, y: 0 }, { x: 10, y: 50}));
-//
-//var a = game.addBox(new DynamicBox(this, { x: 0, y: -200 }, { x: 10, y: 10}));
+var ground = game.addBox(new StaticBox(game, { x: 0, y: 0 }, { x: 100, y: 20}));
 
-var b = game.addBox(new DynamicBox(this, { x: 0, y: -100 }, { x: 20, y: 20}));
-var c = game.addBox(new DynamicBox(this, { x: -100, y: -100 }, { x: 20, y: 20}));
-var d = game.addBox(new DynamicBox(this, { x: 50, y: -40 }, { x: 20, y: 20}));
 
-game.addBox(new DynamicBox(this, { x: 0, y: -200 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(this, { x: 0, y: -300 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(this, { x: 0, y: -400 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(this, { x: 0, y: -500 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(this, { x: 0, y: -600 }, { x: 20, y: 20}));
+game.addBox(new StaticBox(game, { x: 150, y: 0 }, { x: 50, y: 20}));
+game.addBox(new StaticBox(game, { x: -135, y: 0 }, { x: 10, y: 50}));
 
-c.aabb.applyImpulse(-70, 0, 0, 0);
-d.aabb.applyImpulse(1500, 0, 0, 0);
+var b = game.addBox(new DynamicBox(game, { x: 0, y: -100 }, { x: 20, y: 20}));
+var c = game.addBox(new DynamicBox(game, { x: -100, y: -100 }, { x: 20, y: 20}));
+var d = game.addBox(new DynamicBox(game, { x: 50, y: -40 }, { x: 20, y: 20}));
+
+game.addBox(new DynamicBox(game, { x: 0, y: -200 }, { x: 20, y: 20}));
+//game.addBox(new DynamicBox(game, { x: 0, y: -300 }, { x: 20, y: 20}));
+//game.addBox(new DynamicBox(game, { x: 0, y: -400 }, { x: 20, y: 20}));
+//game.addBox(new DynamicBox(game, { x: 0, y: -500 }, { x: 20, y: 20}));
+//game.addBox(new DynamicBox(game, { x: 0, y: -600 }, { x: 20, y: 20}));
+
+c.body.applyImpulse(-70, 0, 0, 0);
+d.body.applyImpulse(1500, 0, 0, 0);
+
+
+var l = game.addCircle(new DynamicCircle(game, { x: -60, y: -200}, 20));
+l.body.angularVelocity = 2;
+console.log(l.body.iI);
 
