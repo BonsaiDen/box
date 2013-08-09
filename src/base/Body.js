@@ -20,8 +20,8 @@ function Body(shape, position, mass, inertia) {
     // How "bouncy" this box is. The higher the value, the more the box will
     // bounce of in case of a collision
     this.restitution = 0.0; // 0 - 1
-    this.staticFriction = 0.5;
-    this.kineticFriction = 0.3;
+    this.staticFriction = 0.4;
+    this.kineticFriction = 0.2;
     this.noFriction = false;
 
     // Dimensions
@@ -70,6 +70,7 @@ extend(Body, null, {
         if (this.im !== 0) {
             this.position.x += this.velocity.x * dt;
             this.position.y += this.velocity.y * dt;
+            // TODO this doesn't look right when rolling across a flat surface
             this.orientation += this.angularVelocity * dt;
             this.integrateForces(dt, gravity);
         }
@@ -86,13 +87,14 @@ extend(Body, null, {
         this.force.y += y;
     },
 
+    /** @abstract */
+    computeMass: function() {
+
+    },
+
     clearForces: function() {
         this.force.x = 0.0;
         this.force.y = 0.0;
-    },
-
-    clearContacts: function() {
-        this.contactCount = 0;
     }
 
 });

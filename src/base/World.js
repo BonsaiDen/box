@@ -76,7 +76,6 @@ World.prototype = {
         // Integrate static forces into velocities and reset contacts
         for(i = 0; i < l; i++) {
             this.dynamics[i].integrateForces(dt, this.gravity);
-            this.dynamics[i].clearContacts();
         }
 
         // Setup collision manifolds
