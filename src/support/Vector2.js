@@ -8,6 +8,11 @@ function Vector2(x, y) {
 // Methods --------------------------------------------------------------------
 Vector2.prototype = {
 
+    zero: function() {
+        this.x = 0;
+        this.y = 0;
+    },
+
     add: function(v) {
         return new Vector2(this.x + v.x, this.y + v.y);
     },
@@ -45,17 +50,6 @@ Vector2.prototype = {
 
         } else {
             return new Vector2(this.x, this.y);
-        }
-
-    },
-
-    normalize: function() {
-
-        var len = this.length();
-        if (len> 0.0001) {
-            var invLen = 1.0 / len;
-            this.x *= invLen;
-            this.y *= invLen;
         }
 
     },

@@ -27,18 +27,14 @@ function Manifold() {
 // Methods --------------------------------------------------------------------
 Manifold.prototype = {
 
-    /**
-      * Initialize the manifold by solving the collision between its two shapes.
-      */
+    /** @private **/
     initializeWithBodies: function(a, b) {
         this.a = a;
         this.b = b;
         return resolveCollision(this, a, b);
     },
 
-    /**
-      * Setup the manifold for the collision phase.
-      */
+    /** @private **/
     setup: function(dt, gravity) {
 
         this.minRestitution = min(this.a.restitution, this.b.restitution);
@@ -83,71 +79,69 @@ Manifold.prototype = {
             rvy = this.getRelativeVelocityY(contact, a, b),
             velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
 
-        // If the velocities are separating do nothing
-        if (velAlongNormal > 0 ) {
-            return;
+        // Only resolve collisions if the velocities aren't separating
+        if (velAlongNormal <= 0) {
+
+            var raCrossN = rax * this.normal.y - ray * this.normal.x,
+                rbCrossN = rbx * this.normal.y - rby * this.normal.x,
+                imSum = a.im + b.im + (raCrossN * raCrossN) * a.iI
+                                    + (rbCrossN * rbCrossN) * b.iI;
+
+            // Calculate impulse scalar
+            var j = -(1.0 + this.minRestitution) * velAlongNormal;
+            j /= imSum;
+            j /= this.contactCount;
+
+            // Apply separation impulse
+            a.applyRawImpulse(-j * this.normal.x, -j * this.normal.y, rax, ray);
+            b.applyRawImpulse(j * this.normal.x, j * this.normal.y, rbx, rby);
+
+            // Handle friction
+            if (a.hasFriction) {
+
+                // Recalculate relative velocity to incorporate
+                // changes in the angularVelocity
+                rvx = this.getRelativeVelocityX(contact, a, b);
+                rvy = this.getRelativeVelocityY(contact, a, b);
+                velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
+
+                // Calculate friction impule scalar
+                var tx = rvx - (this.normal.x * velAlongNormal),
+                    ty = rvy - (this.normal.y * velAlongNormal),
+                    tl = sqrt(tx * tx + ty * ty);
+
+                // Normalize
+                if (tl > EPSILON) {
+                    tx /= tl;
+                    ty /= tl;
+                }
+
+                // Tangent magnitude
+                var jt = -(rvx * tx + rvy * ty);
+                jt /= imSum;
+                jt /= this.contactCount;
+
+                // Don't apply tiny friction impulses
+                if (abs(jt) >= EPSILON) {
+
+                    // Coulumb's law
+                    if (abs(jt) < j * this.staticFriction) {
+                        tx = tx * jt;
+                        ty = ty * jt;
+
+                    } else {
+                        tx = tx * -j * this.kineticFriction;
+                        ty = ty * -j * this.kineticFriction;
+                    }
+
+                    a.applyRawImpulse(-tx, -ty, rax, ray);
+                    b.applyRawImpulse(tx, ty, rbx, rby);
+
+                }
+
+            }
+
         }
-
-
-        // Collision ----------------------------------------------------------
-        var raCrossN = rax * this.normal.y - ray * this.normal.x,
-            rbCrossN = rbx * this.normal.y - rby * this.normal.x,
-            imSum = a.im + b.im + (raCrossN * raCrossN) * a.iI
-                                + (rbCrossN * rbCrossN) * b.iI;
-
-        // Calculate impulse scalar
-        var j = -(1.0 + this.minRestitution) * velAlongNormal;
-        j /= imSum;
-        j /= this.contactCount;
-
-        // Apply Impulse
-        a.applyImpulse(-j * this.normal.x, -j * this.normal.y, rax, ray);
-        b.applyImpulse(j * this.normal.x, j * this.normal.y, rbx, rby);
-
-
-        // Friction -------------------------------------------------------
-        if (this.noFriction) {
-            return;
-        }
-
-        // Need to calculate again due to potentially changed angular velocity
-        rvx = this.getRelativeVelocityX(contact, a, b);
-        rvy = this.getRelativeVelocityY(contact, a, b);
-        velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
-
-        // Friction Impulse
-        var tx = rvx - (this.normal.x * velAlongNormal),
-            ty = rvy - (this.normal.y * velAlongNormal),
-            tl = sqrt(tx * tx + ty * ty);
-
-        // Normalize
-        if (tl > EPSILON) {
-            tx /= tl;
-            ty /= tl;
-        }
-
-        // tangent magnitude
-        var jt = -(rvx * tx + rvy * ty);
-        jt /= imSum;
-        jt /= this.contactCount;
-
-        // Don't apply tiny friction impulses
-        if (abs(jt) < EPSILON) {
-            return;
-        }
-
-        // Coulumb's law
-        if (abs(jt) < j * this.staticFriction) {
-            tx = tx * jt;
-            ty = ty * jt;
-
-        } else {
-            tx = tx * -j * this.kineticFriction;
-            ty = ty * -j * this.kineticFriction;
-        }
-
-        a.applyImpulse(-tx, -ty, rax, ray);
-        b.applyImpulse(tx, ty, rbx, rby);
 
     },
 
@@ -157,7 +151,7 @@ Manifold.prototype = {
         var a = this.a,
             b = this.b;
 
-        var percent = 0.8, // 0.1 - 1
+        var percent = 0.8, // 0.2 - 1
             slop = 0.02, // 0.01 - 0.1
             m = max(this.penetration - slop, 0.0) / (a.im + b.im);
 

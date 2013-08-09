@@ -22,7 +22,7 @@ function Body(shape, position, mass, inertia) {
     this.restitution = 0.0; // 0 - 1
     this.staticFriction = 0.4;
     this.kineticFriction = 0.2;
-    this.noFriction = false;
+    this.hasFriction = true;
 
     // Dimensions
     this.position = new Vector2(position.x, position.y);
