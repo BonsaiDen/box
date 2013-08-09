@@ -39,6 +39,11 @@ extend(AABB, Body, {
 
     },
 
+    computeMass: function(density) {
+        var m = density * (this.extend.x * this.extend.y) * 4;
+        this.im = m ? 1.0 / m : 0.0;
+    },
+
     containsAABB: function(other) {
         return this.min.x <= other.min.x && this.max.x >= other.max.x
             && this.min.y <= other.min.y && this.max.y >= other.max.y;

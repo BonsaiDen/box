@@ -1,4 +1,4 @@
-// AABB -----------------------------------------------------------------------
+// AABB / AABB ----------------------------------------------------------------
 function testAABBvsAABB(a, b) {
     if (a.max.x < b.min.x || a.min.x > b.max.x) {
         return false;
@@ -17,20 +17,12 @@ function resolveAABBvsAABB(m, a, b) {
     var nx = a.position.x - b.position.x,
         ny = a.position.y - b.position.y;
 
-    // Calculate half extends along x axis
-    var aex = (a.max.x - a.min.x) / 2,
-        bex = (b.max.x - b.min.x) / 2;
-
     // Overlap on x axis
-    var xoverlap = aex + bex - abs(nx);
+    var xoverlap = a.extend.x + b.extend.x - abs(nx);
     if (xoverlap > 0) {
 
-        // Calculate half extends along y axis
-        var aey = (a.max.y - a.min.y) / 2,
-            bey = (b.max.y - b.min.y) / 2;
-
         // Overlap on x axis
-        var yoverlap = aey + bey - abs(ny);
+        var yoverlap = a.extend.y + b.extend.y - abs(ny);
         if (yoverlap) {
 
             // Find out which axis is the axis of least penetration
@@ -81,7 +73,7 @@ function resolveAABBvsAABB(m, a, b) {
 
 }
 
-// Circle ---------------------------------------------------------------------
+// Circle / Circle ------------------------------------------------------------
 function testCircleVsCircle(a, b) {
 
     var nx = b.position.x - a.position.x,
@@ -120,42 +112,137 @@ function resolveCircleVsCircle(m, a, b) {
 
 }
 
+// Circle / AABB --------------------------------------------------------------
+function testCircleVsAABB(a, b) {
+
+    // Treat both as a AABB
+    var nx = a.position.x - b.position.x,
+        ny = a.position.y - b.position.y;
+
+    var xoverlap = a.radius + b.extend.x - abs(nx),
+        yoverlap = a.radius + b.extend.y - abs(ny);
+
+    return xoverlap > 0.0 && yoverlap > 0.0;
+
+}
+
+function resolveCircleVsAABB(m, a, b) {
+
+    var dx = a.position.x - b.position.x,
+        dy = a.position.y - b.position.y,
+        ox = dx > 0.0 ? b.extend.x : -b.extend.x,
+        oy = dy > 0.0 ? b.extend.y : -b.extend.y,
+        cx = 0.0,
+        cy = 0.0;
+
+    // Find closest the point of contact, either one of the corners...
+    if (abs(dx) > b.extend.x && abs(dy) > b.extend.y) {
+        cx = b.position.x + ox;
+        cy = b.position.y + oy;
+
+    // ...top or bottom edge....
+    } else if ((dy < -b.extend.y || dy > b.extend.y)
+             && dx < b.extend.x && dx > -b.extend.x) {
+
+        cx = b.position.x + dx;
+        cy = b.position.y + oy;
+
+    // ...left or right edge...
+    } else {
+        cx = b.position.x + ox;
+        cy = b.position.y + dy;
+    }
+
+    // Check if we actually do overlap with the contact point
+    var cdx = cx - a.position.x,
+        cdy = cy - a.position.y;
+
+    if (cdx * cdx + cdy * cdy <= a.radius * a.radius) {
+
+        var dist = sqrt(cdx * cdx + cdy * cdy);
+
+        // Contact Information
+        m.normal.x = cdx / dist;
+        m.normal.y = cdy / dist;
+        m.contacts[0].x = cx;
+        m.contacts[0].y = cy;
+        m.pentration = a.radius - dist;
+
+        m.contactCount = 1;
+        return true;
+
+    } else {
+        m.contactCount = 0;
+        return false;
+    }
+
+}
+
 
 // Callbacks ------------------------------------------------------------------
-// [Shape ID A][Shape ID B] -> Callback
-var testCallbacks = [
-    [testAABBvsAABB],
-    [testCircleVsCircle]
+function CollisionHandler(func, inverted) {
+    this.func = func;
+    this.inverted = !!inverted;
+}
+
+// [Shape ID A][Shape ID B] -> Callback, Invert operands
+var TEST_HANDLER = [
+    [
+        // AABB vs ...
+        new CollisionHandler(testAABBvsAABB, false),     // AABB
+        new CollisionHandler(testCircleVsAABB, true)     // Circle
+
+    ], [
+        // Circle vs ...
+        new CollisionHandler(testCircleVsAABB, false),   // AABB
+        new CollisionHandler(testCircleVsCircle, false), // Circle
+    ]
 ];
 
-// Shape A ID, Shape B ID -> Callback, Invert Normal
-var resolveCallbacks = [
+// Shape A ID, Shape B ID -> Callback, Invert operands and result normal
+var RESOLVE_HANDLER = [
     [
-        [resolveAABBvsAABB, false]
+        // AABB vs ...
+        new CollisionHandler(resolveAABBvsAABB, false),     // AABB
+        new CollisionHandler(resolveCircleVsAABB, true)     // Circle
+
     ], [
-        [resolveCircleVsCircle, false]
+        // Circle vs ...
+        new CollisionHandler(resolveCircleVsAABB, false),   // AABB
+        new CollisionHandler(resolveCircleVsCircle, false), // Circle
     ]
 ];
 
 
 // Statics --------------------------------------------------------------------
 function testCollision(a, b) {
-    return testCallbacks[a.shapeId][b.shapeId](a, b);
+
+    var handler = TEST_HANDLER[a.shapeId][b.shapeId];
+    if (handler.inverted) {
+        return handler.func(b, a);
+
+    } else {
+        return handler.func(a, b);
+    }
+
 }
 
 function resolveCollision(manifold, a, b) {
 
-    var response = resolveCallbacks[a.shapeId][b.shapeId],
+    var handler = RESOLVE_HANDLER[a.shapeId][b.shapeId],
         result;
 
-    if ((result = response[0](manifold, a, b))) {
+    if (handler.inverted) {
 
-        // Invert the normal if required
-        if (response[1]) {
+        result = handler.func(manifold, b, a);
+
+        if (result) {
             manifold.normal.x = -manifold.normal.x;
             manifold.normal.y = -manifold.normal.y;
         }
 
+    } else {
+        result = handler.func(manifold, a, b);
     }
 
     return result;
