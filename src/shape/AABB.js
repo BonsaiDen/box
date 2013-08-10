@@ -24,7 +24,7 @@ AABB.ShapeID = 0;
 
 
 // Methods --------------------------------------------------------------------
-extend(AABB, Body, {
+inherit(AABB, Body, {
 
     update: function() {
 

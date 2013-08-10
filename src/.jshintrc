@@ -12,12 +12,8 @@
 
         "EPSILON": true,
 
-        "extend": true,
-        "round": true,
-        "min": true,
-        "max": true,
-        "abs": true,
-        "sqrt": true
+        "inherit": true,
+        "round": true
     },
 
     // JShint

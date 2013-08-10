@@ -19,7 +19,7 @@ Circle.ShapeID = 1;
 
 
 // Methods --------------------------------------------------------------------
-extend(Circle, Body, {
+inherit(Circle, Body, {
 
     computeMass: function(density) {
 

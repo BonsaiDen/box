@@ -1,3 +1,4 @@
+/*global console*/
 // AABB / AABB ----------------------------------------------------------------
 function testAABBvsAABB(a, b) {
     if (a.max.x < b.min.x || a.min.x > b.max.x) {
@@ -18,11 +19,11 @@ function resolveAABBvsAABB(m, a, b) {
         ny = a.position.y - b.position.y;
 
     // Overlap on x axis
-    var xoverlap = a.extend.x + b.extend.x - abs(nx);
+    var xoverlap = a.extend.x + b.extend.x - Math.abs(nx);
     if (xoverlap > 0) {
 
         // Overlap on x axis
-        var yoverlap = a.extend.y + b.extend.y - abs(ny);
+        var yoverlap = a.extend.y + b.extend.y - Math.abs(ny);
         if (yoverlap) {
 
             // Find out which axis is the axis of least penetration
@@ -38,8 +39,8 @@ function resolveAABBvsAABB(m, a, b) {
                 m.contacts[0].x = x;
                 m.contacts[1].x = x;
 
-                m.contacts[0].y = max(b.min.y, a.min.y);
-                m.contacts[1].y = min(b.max.y, a.max.y);
+                m.contacts[0].y = Math.max(b.min.y, a.min.y);
+                m.contacts[1].y = Math.min(b.max.y, a.max.y);
                 m.contactCount = 2;
 
                 return true;
@@ -55,8 +56,8 @@ function resolveAABBvsAABB(m, a, b) {
                 var y = m.normal.y > 0.0 ? b.min.y : b.max.y;
                 m.contacts[0].y = y;
                 m.contacts[1].y = y;
-                m.contacts[0].x = max(b.min.x, a.min.x);
-                m.contacts[1].x = min(b.max.x, a.max.x);
+                m.contacts[0].x = Math.max(b.min.x, a.min.x);
+                m.contacts[1].x = Math.min(b.max.x, a.max.x);
                 m.contactCount = 2;
 
                 return true;
@@ -88,7 +89,7 @@ function resolveCircleVsCircle(m, a, b) {
 
     var nx = b.position.x - a.position.x,
         ny = b.position.y - a.position.y,
-        distance = sqrt(nx * nx + ny * ny),
+        distance = Math.sqrt(nx * nx + ny * ny),
         radius = a.radius + b.radius;
 
     m.contactCount = 1;
@@ -99,7 +100,8 @@ function resolveCircleVsCircle(m, a, b) {
         m.normal.x = 1;
         m.normal.y = 0;
         m.contacts[0].x = a.position.x;
-        m.contacts[1].y = a.position.y;
+        m.contacts[0].y = a.position.y;
+        return true;
 
     // Partial overlap
     } else {
@@ -108,6 +110,7 @@ function resolveCircleVsCircle(m, a, b) {
         m.normal.y = ny / distance;
         m.contacts[0].x = m.normal.x * a.radius + a.position.x;
         m.contacts[0].y = m.normal.y * a.radius + a.position.y;
+        return true;
     }
 
 }
@@ -119,8 +122,8 @@ function testCircleVsAABB(a, b) {
     var nx = a.position.x - b.position.x,
         ny = a.position.y - b.position.y;
 
-    var xoverlap = a.radius + b.extend.x - abs(nx),
-        yoverlap = a.radius + b.extend.y - abs(ny);
+    var xoverlap = a.radius + b.extend.x - Math.abs(nx),
+        yoverlap = a.radius + b.extend.y - Math.abs(ny);
 
     return xoverlap > 0.0 && yoverlap > 0.0;
 
@@ -136,7 +139,7 @@ function resolveCircleVsAABB(m, a, b) {
         cy = 0.0;
 
     // Find closest the point of contact, either one of the corners...
-    if (abs(dx) > b.extend.x && abs(dy) > b.extend.y) {
+    if (Math.abs(dx) > b.extend.x && Math.abs(dy) > b.extend.y) {
         cx = b.position.x + ox;
         cy = b.position.y + oy;
 
@@ -159,7 +162,7 @@ function resolveCircleVsAABB(m, a, b) {
 
     if (cdx * cdx + cdy * cdy <= a.radius * a.radius) {
 
-        var dist = sqrt(cdx * cdx + cdy * cdy);
+        var dist = Math.sqrt(cdx * cdx + cdy * cdy);
 
         // Contact Information
         m.normal.x = cdx / dist;

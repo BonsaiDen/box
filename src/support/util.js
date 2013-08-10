@@ -1,4 +1,4 @@
-function extend(clas, base, proto) {
+function inherit(clas, base, proto) {
 
     if (base) {
         clas.prototype = Object.create(base.prototype);
@@ -16,20 +16,9 @@ function extend(clas, base, proto) {
 
 
 // Math Utility ---------------------------------------------------------------
-var abs = Math.abs,
-    sqrt = Math.sqrt;
-
 function round(v) {
     var d = (v - (v | 0));
     return ~~(v + d);
-}
-
-function min(a, b) {
-    return a < b ? a : b;
-}
-
-function max(a, b) {
-    return a > b ? a : b;
 }
 
 

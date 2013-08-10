@@ -40,11 +40,11 @@ Manifold.prototype = {
     /** @private **/
     setup: function(dt, gravity) {
 
-        this.minRestitution = min(this.a.restitution, this.b.restitution);
+        this.minRestitution = Math.min(this.a.restitution, this.b.restitution);
 
         // TODO is this correct?
-        this.staticFriction = sqrt(this.a.staticFriction * this.b.staticFriction);
-        this.kineticFriction = sqrt(this.a.kineticFriction * this.b.kineticFriction);
+        this.staticFriction = Math.sqrt(this.a.staticFriction * this.b.staticFriction);
+        this.kineticFriction = Math.sqrt(this.a.kineticFriction * this.b.kineticFriction);
 
         // Figure out whether this is a resting collision.
         // In the case it is, we ignore restitution altogether.
@@ -118,7 +118,7 @@ Manifold.prototype = {
         // Calculate friction impule scalar
         var tx = rvx - (this.normal.x * velAlongNormal),
             ty = rvy - (this.normal.y * velAlongNormal),
-            tl = sqrt(tx * tx + ty * ty);
+            tl = Math.sqrt(tx * tx + ty * ty);
 
         // Normalize
         if (tl > EPSILON) {
@@ -132,10 +132,10 @@ Manifold.prototype = {
         jt /= this.contactCount;
 
         // Don't apply tiny friction impulses
-        if (abs(jt) >= EPSILON) {
+        if (Math.abs(jt) >= EPSILON) {
 
             // Coulumb's law
-            if (abs(jt) < j * this.staticFriction) {
+            if (Math.abs(jt) < j * this.staticFriction) {
                 tx = tx * jt;
                 ty = ty * jt;
 
@@ -159,7 +159,7 @@ Manifold.prototype = {
 
         var percent = 0.8, // 0.2 - 1
             slop = 0.02, // 0.01 - 0.1
-            m = max(this.penetration - slop, 0.0) / (a.im + b.im);
+            m = Math.max(this.penetration - slop, 0.0) / (a.im + b.im);
 
         // Apply correctional impulse to prevent objects from sinking into
         // each other
