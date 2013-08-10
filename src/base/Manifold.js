@@ -7,7 +7,7 @@ function Manifold() {
     this.b = null;
 
     // Response information
-    this.normal = new Vector2(0.0, 0.0);
+    this.normal = new Vec2(0.0, 0.0);
     this.penetration = 0.0;
 
     this.minRestitution = 0.0;
@@ -17,9 +17,12 @@ function Manifold() {
     // TODO extend list to support N sided polygongs
     this.contactCount = 0;
     this.contacts = [
-        new Vector2(0.0, 0.0),
-        new Vector2(0.0, 0.0)
+        new Vec2(0.0, 0.0),
+        new Vec2(0.0, 0.0)
     ];
+
+    // Prevent extensions
+    Object.seal(this);
 
 }
 
@@ -70,76 +73,79 @@ Manifold.prototype = {
     /** @private */
     resolveContactPoint: function(contact, a, b) {
 
-        var rax = contact.x - a.position.x,
-            ray = contact.y - a.position.y,
-            rbx = contact.x - b.position.x,
-            rby = contact.y - b.position.y;
-
         var rvx = this.getRelativeVelocityX(contact, a, b),
             rvy = this.getRelativeVelocityY(contact, a, b),
             velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
 
         // Only resolve collisions if the velocities aren't separating
         if (velAlongNormal <= 0) {
+            this.applyResponseImpulse(contact, a, b, velAlongNormal);
+        }
 
-            var raCrossN = rax * this.normal.y - ray * this.normal.x,
-                rbCrossN = rbx * this.normal.y - rby * this.normal.x,
-                imSum = a.im + b.im + (raCrossN * raCrossN) * a.iI
-                                    + (rbCrossN * rbCrossN) * b.iI;
+    },
 
-            // Calculate impulse scalar
-            var j = -(1.0 + this.minRestitution) * velAlongNormal;
-            j /= imSum;
-            j /= this.contactCount;
+    applyResponseImpulse: function(contact, a, b, velAlongNormal) {
 
-            // Apply separation impulse
-            a.applyRawImpulse(-j * this.normal.x, -j * this.normal.y, rax, ray);
-            b.applyRawImpulse(j * this.normal.x, j * this.normal.y, rbx, rby);
+        var rax = contact.x - a.position.x,
+            ray = contact.y - a.position.y,
+            rbx = contact.x - b.position.x,
+            rby = contact.y - b.position.y;
 
-            // Handle friction
-            if (a.hasFriction) {
+        var imSum = this.getMassSum(a, b, rax, ray, rbx, rby);
 
-                // Recalculate relative velocity to incorporate
-                // changes in the angularVelocity
-                rvx = this.getRelativeVelocityX(contact, a, b);
-                rvy = this.getRelativeVelocityY(contact, a, b);
-                velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
+        // Calculate impulse scalar
+        var j = -(1.0 + this.minRestitution) * velAlongNormal;
+        j /= imSum;
+        j /= this.contactCount;
 
-                // Calculate friction impule scalar
-                var tx = rvx - (this.normal.x * velAlongNormal),
-                    ty = rvy - (this.normal.y * velAlongNormal),
-                    tl = sqrt(tx * tx + ty * ty);
+        // Apply separation impulse
+        a.applyRawImpulse(-j * this.normal.x, -j * this.normal.y, rax, ray);
+        b.applyRawImpulse(j * this.normal.x, j * this.normal.y, rbx, rby);
 
-                // Normalize
-                if (tl > EPSILON) {
-                    tx /= tl;
-                    ty /= tl;
-                }
+        // Handle friction
+        if (a.hasFriction) {
+            this.applyFrictionImpulse(contact, a, b, j, imSum, rax, ray, rbx, rby);
+        }
 
-                // Tangent magnitude
-                var jt = -(rvx * tx + rvy * ty);
-                jt /= imSum;
-                jt /= this.contactCount;
+    },
 
-                // Don't apply tiny friction impulses
-                if (abs(jt) >= EPSILON) {
+    applyFrictionImpulse: function(contact, a, b, j, imSum, rax, ray, rbx, rby) {
 
-                    // Coulumb's law
-                    if (abs(jt) < j * this.staticFriction) {
-                        tx = tx * jt;
-                        ty = ty * jt;
+        var rvx = this.getRelativeVelocityX(contact, a, b),
+            rvy = this.getRelativeVelocityY(contact, a, b),
+            velAlongNormal = rvx * this.normal.x + rvy * this.normal.y;
 
-                    } else {
-                        tx = tx * -j * this.kineticFriction;
-                        ty = ty * -j * this.kineticFriction;
-                    }
+        // Calculate friction impule scalar
+        var tx = rvx - (this.normal.x * velAlongNormal),
+            ty = rvy - (this.normal.y * velAlongNormal),
+            tl = sqrt(tx * tx + ty * ty);
 
-                    a.applyRawImpulse(-tx, -ty, rax, ray);
-                    b.applyRawImpulse(tx, ty, rbx, rby);
+        // Normalize
+        if (tl > EPSILON) {
+            tx /= tl;
+            ty /= tl;
+        }
 
-                }
+        // Tangent magnitude
+        var jt = -(rvx * tx + rvy * ty);
+        jt /= imSum;
+        jt /= this.contactCount;
 
+        // Don't apply tiny friction impulses
+        if (abs(jt) >= EPSILON) {
+
+            // Coulumb's law
+            if (abs(jt) < j * this.staticFriction) {
+                tx = tx * jt;
+                ty = ty * jt;
+
+            } else {
+                tx = tx * -j * this.kineticFriction;
+                ty = ty * -j * this.kineticFriction;
             }
+
+            a.applyRawImpulse(-tx, -ty, rax, ray);
+            b.applyRawImpulse(tx, ty, rbx, rby);
 
         }
 
@@ -169,21 +175,24 @@ Manifold.prototype = {
     },
 
     /** @private */
-    getRelativeVelocityX: function(contact, a, b) {
-        var ray = contact.y - a.position.y,
-            rby = contact.y - b.position.y;
+    getMassSum: function(a, b, rax, ray, rbx, rby) {
+        var raCrossN = rax * this.normal.y - ray * this.normal.x,
+            rbCrossN = rbx * this.normal.y - rby * this.normal.x;
 
-        return b.velocity.x + (-b.angularVelocity * rby)
-             - a.velocity.x - (-a.angularVelocity * ray);
+        return a.im + b.im + raCrossN * raCrossN * a.iI
+                           + rbCrossN * rbCrossN * b.iI;
+    },
+
+    /** @private */
+    getRelativeVelocityX: function(contact, a, b) {
+        return b.velocity.x + (-b.angularVelocity * (contact.y - b.position.y))
+             - a.velocity.x - (-a.angularVelocity * (contact.y - a.position.y));
     },
 
     /** @private */
     getRelativeVelocityY: function(contact, a, b) {
-        var rax = contact.x - a.position.x,
-            rbx = contact.x - b.position.x;
-
-        return b.velocity.y + (b.angularVelocity * rbx)
-             - a.velocity.y - (a.angularVelocity * rax);
+        return b.velocity.y + (b.angularVelocity * (contact.x - b.position.x))
+             - a.velocity.y - (a.angularVelocity * (contact.x - a.position.x));
     }
 
 };

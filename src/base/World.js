@@ -8,14 +8,14 @@ var EPSILON = 0.0001;
   * @desc Box World
   * @constructor
   *
-  * @param gravity {Vector2}
+  * @param gravity {Vec2}
   * @param steps {Integer}
   * @param iterations {Integer}
   */
 function World(gravity, steps, iterations) {
 
     // Public
-    this.gravity = gravity || new Vector2(0.0, 50.0);
+    this.gravity = gravity || new Vec2(0.0, 50.0);
     this.contactCount = 0;
     this.contacts = [];
 
@@ -25,6 +25,9 @@ function World(gravity, steps, iterations) {
     this._interp = 1 / this._steps;
     this._statics = [];
     this._dynamics = [];
+
+    // Prevent extensions
+    Object.seal(this);
 
 }
 

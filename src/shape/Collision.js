@@ -166,7 +166,7 @@ function resolveCircleVsAABB(m, a, b) {
         m.normal.y = cdy / dist;
         m.contacts[0].x = cx;
         m.contacts[0].y = cy;
-        m.pentration = a.radius - dist;
+        m.penetration = a.radius - dist;
 
         m.contactCount = 1;
         return true;

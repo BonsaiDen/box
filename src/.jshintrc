@@ -5,13 +5,12 @@
         "Body": true,
         "AABB": true,
         "Manifold": true,
-        "Vector2": true,
-        "Solver": true,
-
-        "EPSILON": true,
+        "Vec2": true,
 
         "testCollision": true,
         "resolveCollision": true,
+
+        "EPSILON": true,
 
         "extend": true,
         "round": true,

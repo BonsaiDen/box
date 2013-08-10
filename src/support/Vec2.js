@@ -7,26 +7,27 @@
   * @param {float} x - The X coordinate of the vector
   * @param {float} y - The Y coordinate of the vector
   */
-function Vector2(x, y) {
+function Vec2(x, y) {
     this.x = x;
     this.y = y;
+    Object.seal(this);
 }
 
 
 // Methods --------------------------------------------------------------------
-Vector2.prototype = {
+Vec2.prototype = {
 
     zero: function() {
-        this.x = 0;
-        this.y = 0;
+        this.x = 0.0;
+        this.y = 0.0;
     },
 
     add: function(v) {
-        return new Vector2(this.x + v.x, this.y + v.y);
+        return new Vec2(this.x + v.x, this.y + v.y);
     },
 
     sub: function(v) {
-        return new Vector2(this.x - v.x, this.y - v.y);
+        return new Vec2(this.x - v.x, this.y - v.y);
     },
 
     dot: function(v) {
@@ -54,10 +55,10 @@ Vector2.prototype = {
         var len = this.length();
         if (len > 0.0001) {
             var invLen = 1.0 / len;
-            return new Vector2(this.x * invLen, this.y * invLen);
+            return new Vec2(this.x * invLen, this.y * invLen);
 
         } else {
-            return new Vector2(this.x, this.y);
+            return new Vec2(this.x, this.y);
         }
 
     },
@@ -79,5 +80,5 @@ Vector2.prototype = {
 
 
 // Public Exports -------------------------------------------------------------
-Box.Vector2 = Vector2;
+Box.Vec2 = Vec2;
 

@@ -5,15 +5,15 @@
   * @constructor
   * @extends Body
   *
-  * @param {Vector2} position - The center position of the AAAB
-  * @param {Vector2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
+  * @param {Vec2} position - The center position of the AAAB
+  * @param {Vec2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
   * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
   */
 function AABB(position, extend, mass, inertia) {
 
-    this.extend = new Vector2(extend.x, extend.y);
-    this.min = new Vector2(0.0, 0.0);
-    this.max = new Vector2(0.0, 0.0);
+    this.extend = new Vec2(extend.x, extend.y);
+    this.min = new Vec2(0.0, 0.0);
+    this.max = new Vec2(0.0, 0.0);
 
     Body.call(this, AABB, position, mass, inertia);
 

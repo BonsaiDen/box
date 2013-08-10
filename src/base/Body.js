@@ -19,29 +19,32 @@ function Body(shape, position, mass, inertia) {
 
     // How "bouncy" this box is. The higher the value, the more the box will
     // bounce of in case of a collision
-    this.restitution = 0.0; // 0 - 1
+    this.restitution = 0.0;
     this.staticFriction = 0.4;
     this.kineticFriction = 0.2;
     this.hasFriction = true;
 
     // Dimensions
-    this.position = new Vector2(position.x, position.y);
-    this.pixelPosition = new Vector2(position.x, position.y);
+    this.position = new Vec2(position.x, position.y);
+    this.pixelPosition = new Vec2(position.x, position.y);
 
     // Velocities and rotation
-    this.velocity = new Vector2(0.0, 0.0);
+    this.velocity = new Vec2(0.0, 0.0);
     this.angularVelocity = 0.0; // -PI - PI
     this.torque = 0.0; //
     this.orientation = 0.0; // PI - PI * 2
 
     // Internal, temporary values only used during the collision phase
-    this.force = new Vector2(0.0, 0.0);
+    this.force = new Vec2(0.0, 0.0);
 
     // User data
     this.user = null;
 
     // Initial position update
     this.update();
+
+    // Prevent extensions
+    Object.seal(this);
 
 }
 
