@@ -24,7 +24,7 @@ describe('Box', function() {
 
         var Box = require('../lib/box.js');
 
-        var world = new Box.World(new Box.Vector2(0, 100));
+        var world = new Box.World(new Box.Vec2(0, 100));
         world.add(new Box.AABB(0, 0, 100, 10));
         world.add(new Box.AABB(0, -30, 10, 10, 1));
 

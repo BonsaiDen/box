@@ -140,6 +140,7 @@ var StaticBox = Class(function(world, position, extend) {
 
 var DynamicBox = Class(function(world, position, extend) {
     AbstractBox(this, world, position, extend, 10);
+    this.body.computeMass(1);
 
 }, AbstractBox, {
 
@@ -152,7 +153,7 @@ var DynamicBox = Class(function(world, position, extend) {
 
 var Game = Class(function() {
 
-    this.world = new Box.World(new Box.Vector2(0, 200));
+    this.world = new Box.World(new Box.Vec2(0, 200));
     this.bodies = [];
 
     Engine(this, 'scene', 480, 480);
@@ -247,17 +248,15 @@ var b = game.addBox(new DynamicBox(game, { x: 0, y: -100 }, { x: 20, y: 20}));
 var c = game.addBox(new DynamicBox(game, { x: -100, y: -100 }, { x: 20, y: 20}));
 var d = game.addBox(new DynamicBox(game, { x: 50, y: -40 }, { x: 20, y: 20}));
 
-game.addBox(new DynamicBox(game, { x: 0, y: -200 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(game, { x: 0, y: -300 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(game, { x: 0, y: -400 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(game, { x: 0, y: -500 }, { x: 20, y: 20}));
-//game.addBox(new DynamicBox(game, { x: 0, y: -600 }, { x: 20, y: 20}));
-
-c.body.applyImpulse(new Box.Vector2(-70, 0), new Box.Vector2(0, 0));
-d.body.applyImpulse(new Box.Vector2(1500, 0), new Box.Vector2(0, 0));
+c.body.applyImpulse(new Box.Vec2(-70, 0), new Box.Vec2(0, 0));
+d.body.applyImpulse(new Box.Vec2(1500, 0), new Box.Vec2(0, 0));
 
 
 var l = game.addCircle(new DynamicCircle(game, { x: -60, y: -200}, 20));
 l.body.angularVelocity = 2;
-console.log(l.body.iI);
+
+game.addCircle(new DynamicCircle(game, { x: -65, y: -200}, 20));
+game.addCircle(new DynamicCircle(game, { x: -62, y: -200}, 20));
+game.addCircle(new DynamicCircle(game, { x: -64, y: -200}, 20));
+
 
