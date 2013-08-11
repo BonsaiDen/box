@@ -51,7 +51,8 @@ var AbstractBox = Class(function(world, position, extend, mass) {
 
 var AbstractCircle = Class(function(world, position, radius, density) {
     this.body = new Box.Circle(position, radius, density);
-    this.body.computeMass(density || 1);
+    this.body.computeMass(density || 10);
+    this.body.restitution = 0.4;
     this.body.user = this;
 
 }, {
@@ -128,6 +129,7 @@ var DynamicCircle = Class(function(world, position, radius, density) {
 
 var StaticBox = Class(function(world, position, extend) {
     AbstractBox(this, world, position, extend, 0);
+    this.body.restitution = 1;
 
 }, AbstractBox, {
 
@@ -140,7 +142,8 @@ var StaticBox = Class(function(world, position, extend) {
 
 var DynamicBox = Class(function(world, position, extend) {
     AbstractBox(this, world, position, extend, 10);
-    this.body.computeMass(1);
+    this.body.computeMass(1000);
+    this.body.restitution = 0.4;
 
 }, AbstractBox, {
 
@@ -244,7 +247,6 @@ var ground = game.addBox(new StaticBox(game, { x: 0, y: 0 }, { x: 100, y: 20}));
 game.addBox(new StaticBox(game, { x: 150, y: 0 }, { x: 50, y: 20}));
 game.addBox(new StaticBox(game, { x: -135, y: 0 }, { x: 10, y: 50}));
 
-var b = game.addBox(new DynamicBox(game, { x: 0, y: -100 }, { x: 20, y: 20}));
 var c = game.addBox(new DynamicBox(game, { x: -100, y: -100 }, { x: 20, y: 20}));
 var d = game.addBox(new DynamicBox(game, { x: 50, y: -40 }, { x: 20, y: 20}));
 
@@ -252,11 +254,13 @@ c.body.applyImpulse(new Box.Vec2(-70, 0), new Box.Vec2(0, 0));
 d.body.applyImpulse(new Box.Vec2(1500, 0), new Box.Vec2(0, 0));
 
 
-var l = game.addCircle(new DynamicCircle(game, { x: -60, y: -200}, 20));
+var l = game.addCircle(new DynamicCircle(game, { x: 0, y: -200}, 20));
 l.body.angularVelocity = 2;
 
-game.addCircle(new DynamicCircle(game, { x: -65, y: -200}, 20));
-game.addCircle(new DynamicCircle(game, { x: -62, y: -200}, 20));
-game.addCircle(new DynamicCircle(game, { x: -64, y: -200}, 20));
+var b = game.addBox(new DynamicBox(game, { x: 0, y: -100 }, { x: 20, y: 20}));
+
+game.addCircle(new DynamicCircle(game, { x: -65, y: -200}, 20)).body.angularVelocity = 0.4;
+game.addCircle(new DynamicCircle(game, { x: -62, y: -200}, 20)).body.angularVelocity = -2;
+game.addCircle(new DynamicCircle(game, { x: -64, y: -200}, 20)).body.angularVelocity = 1.4;
 
 
