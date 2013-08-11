@@ -25,8 +25,8 @@ describe('Box', function() {
         var Box = require('../lib/box.js');
 
         var world = new Box.World(new Box.Vec2(0, 100));
-        world.add(new Box.AABB(0, 0, 100, 10));
-        world.add(new Box.AABB(0, -30, 10, 10, 1));
+        world.addBody(new Box.AABB(new Box.Vec2(0, 0), new Box.Vec2(100, 20)));
+        world.addBody(new Box.AABB(new Box.Vec2(0, -30), new Box.Vec2(20, 20), 1));
 
         var i = 0;
         while(i < 100) {
