@@ -33,7 +33,7 @@ var AbstractBox = Class(function(world, position, extend, mass) {
             s.y * 2 - width
         );
 
-        var d = v.unit(),
+        var d = v.normalize(),
             cx = p.x,
             cy = p.y;
 
@@ -224,13 +224,13 @@ var Game = Class(function() {
     },
 
     addBox: function(box) {
-        this.world.add(box.body);
+        this.world.addBody(box.body);
         this.bodies.push(box);
         return box;
     },
 
     addCircle: function(circle) {
-        this.world.add(circle.body);
+        this.world.addBody(circle.body);
         this.bodies.push(circle);
         return circle;
     }
