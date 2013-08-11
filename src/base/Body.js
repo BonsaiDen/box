@@ -14,40 +14,53 @@ function Body(shapeId, position, mass, inertia) {
     mass = mass !== undefined ? mass : 0.0;
     inertia = inertia !== undefined ? inertia : 0.0;
 
-    // Inverse mass. 0 is used as a placeholder for infinite mass
+    // Physics ----------------------------------------------------------------
+
+    /** {Double}: Inverse mass of the body. A value of 0 specifies infinite mass */
     this.im = mass === 0.0 ? 0.0 : 1.0 / mass;
 
-    // Inverse inertia. 0 is used as a placeholder for infinite inertia
+    /** {Double}: Inverse inertia of the body. A value of 0 specifies infinite inertia */
     this.iI = inertia === 0.0 ? 0.0 : 1.0 / inertia;
 
-    // Dimensions
+    /** {Vec2}: Position */
     this.position = new Vec2(position.x, position.y);
+
+    /** {Vec2}: Position, rounded to the nearest full pixel value */
     this.pixelPosition = new Vec2(position.x, position.y);
 
-    // Internal, temporary values only used during the collision phase
-    this.force = new Vec2(0.0, 0.0);
-
-    // Velocities and rotation
+    /** {Vec2}: Velocity of the body */
     this.velocity = new Vec2(0.0, 0.0);
-    this.angularVelocity = 0.0; // rate of rotation
-    this.torque = 0.0; // constant rate of rotation being applied
-    this.orientation = 0.0; // PI - PI * 2
 
-    // Indentity
+    /** {Double}: Angular velocity in radians */
+    this.angularVelocity = 0.0;
+
+    /** {Double}: Torque in radians */
+    this.torque = 0.0;
+
+    /** {Double}: Orientation in radians */
+    this.orientation = 0.0;
+
+    /** {Double} "Bounciness" of the object's surface */
+    this.restitution = 0.4;
+
+    /** {Double} Friction when the body is at rest */
+    this.staticFriction = 0.4;
+
+    /** {Double} Friction when the body is in motion */
+    this.kineticFriction = 0.2;
+
+    /** {Integer}: Unique ID of this body */
     this.id = ++Body.id;
-    this.shapeId = shapeId;
+
+    /** {Any}: Reference to custom user data attached to the body */
+    this.user = null;
+
+    // Internals
+    this.force = new Vec2(0.0, 0.0);
     this.group = 0;
     this.layer = 0;
-
-    // How "bouncy" this box is. The higher the value, the more the box will
-    // bounce of in case of a collision
-    this.restitution = 0.0;
-    this.staticFriction = 0.4;
-    this.kineticFriction = 0.2;
+    this.shapeId = shapeId;
     this.hasFriction = true;
-
-    // User data
-    this.user = null;
 
     // Prevent extensions
     Object.seal(this);
@@ -67,7 +80,11 @@ Body.id = 0;
 // Methods --------------------------------------------------------------------
 inherit(Body, null, {
 
-    /** {Vec2}: Velocity to apply; {Vec2}: Angular velocity to apply */
+    /**
+      * {Vec2}: Velocity to apply;
+      * {Vec2}: Angular velocity to apply;
+      * -> Applies the specified impulse to the body.
+      */
     applyImpulse: function(velocity, angularVelocity) {
         this.applyRawImpulse(
             velocity.x, velocity.y,

@@ -9,13 +9,16 @@
   * -> {Circle} (Body): Representation of a Circle collision shape
   */
 function Circle(position, radius, mass, inertia) {
+
+    /** {Double}: Radius of the circle */
     this.radius = radius;
+
     Body.call(this, Circle.ShapeID, position, mass, inertia);
 }
 
 // Statics --------------------------------------------------------------------
 
-/** {Integer}: Unique ID identifying the {Circle} collision shape */
+/** {Integer}: Unique ID identifying the collision shape */
 Circle.ShapeID = 1;
 
 

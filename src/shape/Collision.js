@@ -96,20 +96,26 @@ function resolveCircleVsCircle(m, a, b) {
 
     // Circles overlap completely so we need to avoid creating NaN values
     if (distance === 0.0) {
+
+        // Contact Information
         m.penetration = a.radius;
         m.normal.x = 1;
         m.normal.y = 0;
         m.contacts[0].x = a.position.x;
         m.contacts[0].y = a.position.y;
+
         return true;
 
     // Partial overlap
     } else {
+
+        // Contact Information
         m.penetration = radius - distance;
         m.normal.x = nx / distance;
         m.normal.y = ny / distance;
         m.contacts[0].x = m.normal.x * a.radius + a.position.x;
         m.contacts[0].y = m.normal.y * a.radius + a.position.y;
+
         return true;
     }
 

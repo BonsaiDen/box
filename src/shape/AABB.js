@@ -9,15 +9,20 @@
   * -> {AABB} (Body): Representation of a Axis Aligned Bounding Box collision shape
   */
 function AABB(position, extend, mass, inertia) {
+
+    /** {Vec2}: Extends of the object, each half */
     this.extend = new Vec2(extend.x, extend.y);
+
     this.min = new Vec2(0.0, 0.0);
     this.max = new Vec2(0.0, 0.0);
+
     Body.call(this, AABB.ShapeID, position, mass, inertia);
+
 }
 
 // Statics --------------------------------------------------------------------
 
-/** {Integer}: Unique ID identifying the {AABB} collision shape */
+/** {Integer}: Unique ID identifying the collision shape */
 AABB.ShapeID = 0;
 
 

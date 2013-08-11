@@ -1,15 +1,21 @@
 // Class ----------------------------------------------------------------------
 
 /**
-  * {Double}: X component of the vector;
-  * {Double}: Y component of the vector;
+  * {Double}: x component of the vector;
+  * {Double}: y component of the vector;
   *
   * -> {Vec2}: Representation of a two dimensional vector
   */
 function Vec2(x, y) {
+
+    /** {Double}: x component of the vector */
     this.x = x;
+
+    /** {Double}: y component of the vector */
     this.y = y;
+
     Object.seal(this);
+
 }
 
 

@@ -3,24 +3,29 @@
 /** -> {Manifold}: Wrapper construct for a collision between two bodies */
 function Manifold() {
 
-    // Bodies
+    // Bodies of the manifold
     this.a = null;
     this.b = null;
 
-    // Response information
+    /** {Vec2}: The normal of the collision */
     this.normal = new Vec2(0.0, 0.0);
+
+    /** {Double}: The penetration depth of the collision */
     this.penetration = 0.0;
 
-    this.minRestitution = 0.0;
-    this.staticFriction = 0.0;
-    this.kineticFriction = 0.0;
-
-    // TODO extend list to support N sided polygongs
+    /** {Integer}: Number of contacts between the two bodies in the manifold **/
     this.contactCount = 0;
+
+    /** {Vec2[]}: List of contacts points. Contacts are only valid until the next world update and indicies are only valid up to the contactCount of the manifold */
     this.contacts = [
         new Vec2(0.0, 0.0),
         new Vec2(0.0, 0.0)
     ];
+
+    // Internals
+    this.minRestitution = 0.0;
+    this.staticFriction = 0.0;
+    this.kineticFriction = 0.0;
 
     // Prevent extensions
     Object.seal(this);
@@ -31,6 +36,7 @@ function Manifold() {
 // Methods --------------------------------------------------------------------
 Manifold.prototype = {
 
+    // Internals --------------------------------------------------------------
     initializeWithBodies: function(a, b) {
         this.a = a;
         this.b = b;
