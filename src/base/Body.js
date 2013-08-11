@@ -1,11 +1,14 @@
 // Class ----------------------------------------------------------------------
 
 /**
-  * @desc Abstract type representing a basic {World} entity.
-  * @constructor
-  * @abstract
+  * {Integer}: Unique ID used identifying the bodies type;
+  * {Vec2}: Initial position of the body;
+  * {Double} (0.0): Mass of the body;
+  * {Double} (0.0): Inertia of the body;
+  *
+  * -> {Body}: Logical representation of a phyiscal body within a {World}
   */
-function Body(shape, position, mass, inertia) {
+function Body(shapeId, position, mass, inertia) {
 
     // Defaults
     mass = mass !== undefined ? mass : 0.0;
@@ -32,7 +35,7 @@ function Body(shape, position, mass, inertia) {
 
     // Indentity
     this.id = ++Body.id;
-    this.shapeId = shape.ShapeID;
+    this.shapeId = shapeId;
     this.group = 0;
     this.layer = 0;
 
@@ -56,23 +59,29 @@ function Body(shape, position, mass, inertia) {
 
 
 // Statics --------------------------------------------------------------------
+
+/** {Integer}: Unique ID counter identifying each {Body} */
 Body.id = 0;
 
 
 // Methods --------------------------------------------------------------------
 inherit(Body, null, {
 
-    applyImpulse: function(v, a) {
-        this.applyRawImpulse(v.x, v.y, a.x, a.y);
+    /** {Vec2}: Velocity to apply; {Vec2}: Angular velocity to apply */
+    applyImpulse: function(velocity, angularVelocity) {
+        this.applyRawImpulse(
+            velocity.x, velocity.y,
+            angularVelocity.x, angularVelocity.y
+        );
     },
 
-    /** @private */
+
+    // Internal ---------------------------------------------------------------
     update: function() {
         this.pixelPosition.x = round(this.position.x);
         this.pixelPosition.y = round(this.position.y);
     },
 
-    /** @private */
     integrateForces: function(dt, gravity) {
         if (this.im !== 0) {
             this.velocity.x += (this.force.x * this.im + gravity.x) * (dt / 2.0);
@@ -81,7 +90,6 @@ inherit(Body, null, {
         }
     },
 
-    /** @private */
     integrateVelocity: function(dt, gravity) {
         if (this.im !== 0) {
             this.position.x += this.velocity.x * dt;
@@ -92,25 +100,21 @@ inherit(Body, null, {
         }
     },
 
-    /** @private */
     applyRawImpulse: function(x, y, rx, ry) {
         this.velocity.x += this.im * x;
         this.velocity.y += this.im * y;
         this.angularVelocity += this.iI * (rx * y - ry * x);
     },
 
-    /** @private */
     applyRawForce: function(x, y) {
         this.force.x += x;
         this.force.y += y;
     },
 
-    /** @abstract */
     computeMass: function() {
 
     },
 
-    /** @private */
     clearForces: function() {
         this.force.x = 0.0;
         this.force.y = 0.0;

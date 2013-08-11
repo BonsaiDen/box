@@ -4,13 +4,13 @@ var EPSILON = 0.0001;
 
 // Class ----------------------------------------------------------------------
 
+
 /**
-  * @desc Box World
-  * @constructor
+  * {Vec2} (Vec2(0.0, 50.0)): Gravity applied to all bodies;
+  * {Integer} (10):     Number of simulation steps to perform on each world update;
+  * {Integer} (10):     Number of iterations to perform for each collision contact;
   *
-  * @param gravity {Vec2}
-  * @param steps {Integer}
-  * @param iterations {Integer}
+  * -> {World}: Two dimensional world for physics simulation.
   */
 function World(gravity, steps, iterations) {
 
@@ -34,20 +34,14 @@ function World(gravity, steps, iterations) {
 
 // Statics --------------------------------------------------------------------
 
-/**
- * @desc Epsilion value used to cut off certain calculations.
- * @type {float} 0.0001
- */
+/** {Double} (0.0001): Value used as a threshold for friction and resting of bodies */
 World.EPSILON = EPSILON;
 
 
 // Methods --------------------------------------------------------------------
 World.prototype = {
 
-    /**
-      * @desc Performs an update on all bodies in the world, advancing each of them by `dt` seconds.
-      * @param dt {Double} - Number of seconds to advance the world
-      */
+    /** {Double}: Seconds -> Advances the simulation by the given number of seconds */
     update: function(dt) {
 
         // Perform the world update in smaller steps
@@ -65,45 +59,45 @@ World.prototype = {
 
     },
 
-    /**
-      * @desc Adds a {Body} to the world
-      * @param {Body} body
-      *
-      * @returns {Boolean} Whether or not the body was actually added.
-      */
+    /** {Body}: Body to add; -> {Boolean}: Adds a body to the world */
     addBody: function(body) {
-        if (body.im !== 0) {
-            this._dynamics.push(body);
+
+        if (this.containsBody(body)) {
+            return false;
 
         } else {
-            this._statics.push(body);
+            if (body.im !== 0) {
+                this._dynamics.push(body);
+
+            } else {
+                this._statics.push(body);
+            }
         }
+
     },
 
-    /**
-      * @desc Removes a {Body} from the world
-      * @param {Body} body
-      *
-      * @returns {Boolean} Whether or not the body was actually removed
-      */
+    /** {Body}: Body to remove; -> {Boolean}: Removes a body from the world */
     removeBody: function(body) {
-        this._statics.splice(this._statics.indexOf(body), 1);
-        this._dynamics.splice(this._dynamics.indexOf(body), 1);
+
+        if (this.containsBody(body)) {
+            this._statics.splice(this._statics.indexOf(body), 1);
+            this._dynamics.splice(this._dynamics.indexOf(body), 1);
+            return true;
+
+        } else {
+            return false;
+        }
+
     },
 
-    /**
-      * @desc Returns whether or not a {Body} is contained by this world
-      * @returns {Boolean}
-      */
+    /** {Body} -> {Boolean}: Checks whether a body is part of the world */
     containsBody: function(body) {
         return this._statics.indexOf(body) !== -1
             || this._dynamics.indexOf(body) !== -1;
     },
 
 
-    // Collision detection and resolution -------------------------------------
-
-    /** @private */
+    // Internal ---------------------------------------------------------------
     step: function(dt) {
 
         // Temporary variables
@@ -147,7 +141,6 @@ World.prototype = {
 
     },
 
-    /** @private */
     findContacts: function() {
 
         var dl = this._dynamics.length,
@@ -172,7 +165,6 @@ World.prototype = {
 
     },
 
-    /** @private */
     checkAndSolveCollision: function(a, b) {
 
         var m;

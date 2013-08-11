@@ -1,4 +1,4 @@
-/*global console*/
+
 // AABB / AABB ----------------------------------------------------------------
 function testAABBvsAABB(a, b) {
     if (a.max.x < b.min.x || a.min.x > b.max.x) {

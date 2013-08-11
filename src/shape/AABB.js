@@ -1,32 +1,37 @@
 // Class ----------------------------------------------------------------------
 
 /**
-  * @desc Shape describing a Axis Aligned Bounding Box.
-  * @constructor
-  * @extends Body
+  * {Vec2}: Initial position of the AABB;
+  * {Vec2}: Extends of the AABB, the AABB will extend from its center in all directions based on the components of the vector;
+  * {Double} (0.0): Mass of the AABB;
+  * {Double} (0.0): Inertia of the AABB;
   *
-  * @param {Vec2} position - The center position of the AAAB
-  * @param {Vec2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
-  * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
+  * -> {AABB} (Body): Logical representation of a Axis Aligned Bounding Box collision shape
   */
 function AABB(position, extend, mass, inertia) {
-
-    Body.call(this, AABB, position, mass, inertia);
-
     this.extend = new Vec2(extend.x, extend.y);
     this.min = new Vec2(0.0, 0.0);
     this.max = new Vec2(0.0, 0.0);
-
+    Body.call(this, AABB.ShapeID, position, mass, inertia);
 }
 
 // Statics --------------------------------------------------------------------
+
+/** {Integer}: Unique ID identifying the {AABB} collision shape */
 AABB.ShapeID = 0;
 
 
 // Methods --------------------------------------------------------------------
 inherit(AABB, Body, {
 
-    /** @private */
+    /** {Double} -> Computes the mass and inertia of the AABB based on its area and the given density */
+    computeMass: function(density) {
+        var m = density * (this.extend.x * this.extend.y) * 4;
+        this.im = m ? 1.0 / m : 0.0;
+    },
+
+
+    // Internal ---------------------------------------------------------------
     update: function() {
 
         this.min.x = this.position.x - this.extend.x;
@@ -36,11 +41,6 @@ inherit(AABB, Body, {
 
         Body.prototype.update.call(this);
 
-    },
-
-    computeMass: function(density) {
-        var m = density * (this.extend.x * this.extend.y) * 4;
-        this.im = m ? 1.0 / m : 0.0;
     },
 
     containsAABB: function(other) {

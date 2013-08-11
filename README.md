@@ -18,19 +18,24 @@ __Current Features__
 - Comes with a 2D Vector class
 
 
-### Usage
 
-__Building / Including__
-
+### Building / Including
 
 You can either use the pre-built version directly from the `lib` folder or do a custom build:
 
 ```
 $ npm install .
 $ grunt
-
 ```
 
+
+### Documentation
+
+Auto generated API documentation is available [here](https://github.com/BonsaiDen/box/blob/master/DOC.md).
+
+
+
+### Tutorial
 
 __Setting up your World__
 
@@ -67,20 +72,25 @@ Now you can create your `Box.World` which will simply be empty and resting at fi
 var world = new Box.World(gravity, steps, iterations);
 ```
 
+
 __Adding bodies__
 
-```javascript
+Coming soon.
 
-```
 
 __Updating your world__
+
+Coming soon.
 
 
 __Rendering bodies__
 
+Coming soon.
+
 
 __Dealing with contacts__
 
+Coming soon.
 
 
 ### Upcoming Features

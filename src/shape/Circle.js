@@ -1,26 +1,28 @@
 // Class ----------------------------------------------------------------------
 
 /**
-  * @desc Shape describing a Circle
-  * @constructor
-  * @extends Body
+  * {Vec2}: Initial position of the Circle;
+  * {Double}: Radius of the Cirlce;
+  * {Double} (0.0): Mass of the Circle;
+  * {Double} (0.0): Inertia of the Circle;
   *
-  * @param {Vec2} position - The center position of the AAAB
-  * @param {Vec2} extend - Extends of the AABB around its center position. The full dimensions of the AABB are twice the extends.
-  * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
+  * -> {Circle} (Body): Logical representation of a Circle collision shape
   */
 function Circle(position, radius, mass, inertia) {
-    Body.call(this, Circle, position, mass, inertia);
+    Body.call(this, Circle.ShapeID, position, mass, inertia);
     this.radius = radius;
 }
 
 // Statics --------------------------------------------------------------------
+
+/** {Integer}: Unique ID identifying the {Circle} collision shape */
 Circle.ShapeID = 1;
 
 
 // Methods --------------------------------------------------------------------
 inherit(Circle, Body, {
 
+    /** {Double} -> Computes the mass and inertia of the circle based on its radius and the given density */
     computeMass: function(density) {
 
         var m = Math.PI * this.radius * this.radius * density,

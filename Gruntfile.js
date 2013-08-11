@@ -9,6 +9,8 @@ module.exports = function(grunt) {
         // Configuration ------------------------------------------------------
         pkg: grunt.file.readJSON('package.json'),
 
+        doc: null,
+
         dirs: {
             src: 'src',
             dist: 'lib',
@@ -53,7 +55,7 @@ module.exports = function(grunt) {
 
         uglify: {
             options: {
-                banner: '/*! <%= pkg.name %> (v<%= pkg.version %> built on <%= grunt.template.today("dd-mm-yyyy at hh:mm") %>) */\n'
+                banner: '/*! <%= pkg.name %> (v<%= pkg.version %> built on <%= grunt.template.today("dd-mm-yyyy @ hh:mm") %>) */\n'
             },
             dist: {
                 files: {
@@ -119,344 +121,64 @@ module.exports = function(grunt) {
     grunt.registerTask('box', ['concat', 'template', 'clean:tmp']);
 
 
+    // Documentation ----------------------------------------------------------
     grunt.registerTask('doc', function() {
 
-        var esprima = require('esprima'),
-            escodegen = require('escodegen'),
-            code = grunt.file.read('lib/box.js'),
-            ast = esprima.parse(code, {
-                range: true,
-                tokens: true,
-                comment: true
-            });
+        console.log('Parsing "lib/box.js"...');
+        var parser = require('./grunt.parse'),
+            doc = parser.parse(grunt.file.read('lib/box.js'));
 
-        ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
+        function toType(t) {
+            return t ? (' -> *' + t + '*') : '';
+        }
 
-        function walk(node, check, func, parent, data) {
+        function toParam(p) {
+            return '*' + p.type + ' ' + p.name + (p.defaultValue ? ' = ' + p.defaultValue : '') + '*';
+        }
 
-            data = data || [];
-            for(var n in node) {
-                if (node.hasOwnProperty(n)) {
+        function toSignature(params) {
+            return params.map(toParam).join(', ');
+        }
 
-                    var prop = node[n];
-                    if (!prop) {
-                        continue;
+        function toConstructor(c) {
+            return c.name + (c.base ? '[' + c.base + ']' : '') + '(' + toSignature(c.params) + ')';
+        }
 
-                    } else if (prop.type) {
-                        walk(prop, check, func, node.type ? node : parent, data);
+        function toStatic(s) {
+            return ' - ' + '*' + s.type + '* __' + s.name + '__' + (s.value ? ' = ' + s.value : '');
+        }
 
-                    } else if (prop instanceof Array) {
-                        walk(prop, check, func, node.type ? node : parent, data);
-                    }
+        function toMethod(m) {
+            return ' - __' + m.name + '__(' + toSignature(m.params) + ')' + toType(m.type);
+        }
 
-                }
+        function toClass(clas) {
+
+            var text = '## ' + toConstructor(clas) + '\n\n' + clas.description;
+
+            if (clas.statics.length) {
+                text += '\n\n#### Static Fields\n\n';
+                text += clas.statics.map(function(s) {
+                    return toStatic(s);
+
+                }).join('\n\n');
             }
 
-            if (node.type) {
-                if (!check || check(node, parent)) {
-                    var result = func(node, parent || { type: 'File' });
-                    if (result) {
-                        data.push(result);
-                    }
-                }
+            if (clas.methods.length) {
+                text += '\n\n#### Methods\n\n';
+                text += clas.methods.map(function(m) {
+                    return toMethod(m) + '\n\n    ' + m.description;
+
+                }).join('\n\n');
             }
 
-            return data;
+            return text;
 
         }
 
-        function memberName(expr, post) {
-
-            if (expr.type === 'Identifier') {
-                return expr.name;
-            }
-
-            var name;
-            if (expr.object.type === 'Identifier') {
-                name = expr.object.name;
-
-            } else if (expr.object.type === 'ThisExpression') {
-                name = 'this';
-
-            } else {
-                name = memberName(expr.object, name);
-            }
-
-            if (name) {
-                if (post) {
-                    return name + '.' + expr.property.name + '.' + post;
-
-                } else {
-                    return name + '.' + expr.property.name;
-                }
-
-            } else {
-                return expr.property.name + '.' + post;
-            }
-
-        }
-
-        function getDocComments(node) {
-
-            if (node.leadingComments) {
-
-                return node.leadingComments.filter(function(comment) {
-                    return comment.type === 'Block';
-
-                }).map(function(comment) {
-
-                    return comment.value.split('\n').map(function(line) {
-
-                        line = line.trim();
-                        if (line.substring(0, 1) === '*') {
-                            return line.substring(1).trim();
-
-                        } else {
-                            return line;
-                        }
-
-                    }).filter(function(line) {
-                        return line.length > 0;
-                    });
-
-                });
-
-            } else {
-                return [];
-            }
-
-        }
-
-        function getDoc(node) {
-
-            var doc = {
-                isConstructor: false,
-                visibility: 'public',
-                description: null,
-                parent: null,
-                params: [],
-                properties: [],
-                type: null,
-                returns: null
-            };
-
-            function getDescription(line) {
-
-                if (line.indexOf('-') !== -1) {
-                    return line.substring(line.indexOf('-') + 1).trim();
-
-                } else {
-                    return null;
-                }
-
-            }
-
-            getDocComments(node).forEach(function(comment) {
-
-                comment.forEach(function(line) {
-
-                    if ((/^@/).test(line)) {
-
-                        var params = line.substring(1).split(' '),
-                            type = params[0].toLowerCase();
-
-                        switch(type) {
-                            case 'desc':
-                            case 'description':
-                                doc.description = params.slice(1).join(' ');
-                                break;
-
-                            case 'public':
-                            case 'private':
-                                doc.visibility = type;
-                                break;
-
-                            case 'param':
-                                doc.params.push({
-                                    type: params[1],
-                                    name: params[2],
-                                    comment: getDescription(line)
-                                });
-                                break;
-
-                            case 'prop':
-                                doc.properties.push({
-                                    type: params[1],
-                                    name: params[2],
-                                    comment: getDescription(line)
-                                });
-                                break;
-
-                            case 'type':
-                                doc.type = {
-                                    name: params[1],
-                                    value: params[2] || null,
-                                    comment: getDescription(line)
-                                };
-                                break;
-
-                            case 'return':
-                            case 'returns':
-                                doc.returns = {
-                                    type: params[1],
-                                    comment: getDescription(line)
-                                };
-                                break;
-
-                            case 'augments':
-                                doc.parent = params[1];
-                                break;
-
-                            case 'constructor':
-                                doc.isConstructor = true;
-                                break;
-
-                            default:
-                                break;
-
-                        }
-
-                    }
-
-                });
-
-            });
-
-            return doc;
-
-        }
-
-        function isConstructor(node, parent) {
-            if (node.type === 'FunctionDeclaration') {
-                node.doc = getDoc(node);
-                return node.doc.isConstructor;
-            }
-        }
-
-        function isPrototype(node, parent) {
-            if (node.type === 'AssignmentExpression'
-                && node.left.type === 'MemberExpression'
-                && node.right.type === 'ObjectExpression') {
-
-                var name = memberName(node.left);
-                return (/\.prototype$/).test(name);
-            }
-        }
-
-        function isExtend(node, parent) {
-            if (node.type === 'CallExpression'
-                && (node.callee.type === 'Identifier'
-                    || node.callee.type === 'MemberExpression')) {
-
-                return memberName(node.callee) === 'extend';
-
-            }
-        }
-
-        function isStatic(node, parent) {
-            if (node.type === 'AssignmentExpression'
-                && node.left.type === 'MemberExpression') {
-
-                var name = memberName(node.left);
-                if (name.split('.').length === 2 && node.right) {
-                    return name[0] === name[0].toUpperCase();
-                }
-
-            }
-        }
-
-        function methods(props) {
-            return props.map(function(m) {
-                return {
-                    doc: getDoc(m),
-                    name: m.key.name
-                };
-            });
-        }
-
-        var ctors = walk(ast, isConstructor, function(node, parent) {
-            return {
-                name: node.id.name,
-                parent: null,
-                doc: node.doc,
-                statics: [],
-                methods: [],
-                namespace: false
-            };
-        });
-
-        var statics = walk(ast, isStatic, function(node, parent) {
-            var name = memberName(node.left).split('.');
-            return {
-                base: name[0],
-                doc: getDoc(node),
-                property: name[1],
-                value: node.right.value
-            };
-        });
-
-        var protos = walk(ast, isPrototype, function(node, parent) {
-            var name = memberName(node.left).split('.')[0];
-            return {
-                name: name,
-                methods: methods(node.right.properties)
-            };
-        });
-
-        var extend = walk(ast, isExtend, function(node, parent) {
-
-            var data = node.arguments.map(function(value) {
-
-                if (value.type === 'ObjectExpression') {
-                    return methods(value.properties);
-
-                } else if (value.type === 'Literal') {
-                    return value.value;
-
-                } else {
-                    return value.name;
-                }
-
-            });
-
-            return {
-                name: data[0],
-                parent: data[1],
-                methods: data[2]
-            };
-
-        });
-
-        var classes = ctors.map(function(clas) {
-
-            var methods = clas.methods;
-
-            protos.filter(function(p) {
-                return p.name === clas.name;
-
-            }).map(function(p) {
-                methods.push.apply(methods, p.methods);
-            });
-
-            extend.filter(function(p) {
-                return p.name === clas.name;
-
-            }).map(function(p) {
-                methods.push.apply(methods, p.methods);
-            });
-
-            statics.filter(function(s) {
-                return s.base === clas.name && s.property !== 'prototype';
-
-            }).map(function(s) {
-                clas.statics.push(s);
-            });
-
-            return clas;
-
-        });
-
-        grunt.file.write('doc.json', JSON.stringify(classes));
+        console.log('Generating documentation for "lib/box.js"...');
+        var out = doc.list.map(toClass).join('\n\n');
+        grunt.file.write('DOC.md', out);
 
     });
 
@@ -472,7 +194,7 @@ module.exports = function(grunt) {
 
     // Public Tasks -----------------------------------------------------------
     grunt.registerTask('test', ['mochaTest']);
-    grunt.registerTask('build', ['jshint', 'box', 'uglify', 'test']);
+    grunt.registerTask('build', ['jshint', 'box', 'doc', 'uglify', 'test']);
     grunt.registerTask('default', 'build');
 
 };

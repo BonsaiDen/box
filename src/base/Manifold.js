@@ -1,10 +1,6 @@
 // Class ----------------------------------------------------------------------
 
-/**
-  * @desc Construct enclosing the collision between two {Body} instances.
-  * @constructor
-  * @private
-  */
+/** -> {Manifold}: Wrapper construct for a collision between two {Body}'s */
 function Manifold() {
 
     // Bodies
@@ -35,14 +31,12 @@ function Manifold() {
 // Methods --------------------------------------------------------------------
 Manifold.prototype = {
 
-    /** @private **/
     initializeWithBodies: function(a, b) {
         this.a = a;
         this.b = b;
         return resolveCollision(this, a, b);
     },
 
-    /** @private **/
     setup: function(dt, gravity) {
 
         this.minRestitution = Math.min(this.a.restitution, this.b.restitution);
@@ -68,14 +62,12 @@ Manifold.prototype = {
 
     },
 
-    /** @private */
     resolveAllContacts: function() {
         for(var i = 0; i < this.contactCount; i++) {
             this.resolveContactPoint(this.contacts[i], this.a, this.b);
         }
     },
 
-    /** @private */
     resolveContactPoint: function(contact, a, b) {
 
         var rvx = this.getRelativeVelocityX(contact, a, b),
@@ -89,7 +81,6 @@ Manifold.prototype = {
 
     },
 
-    /** @private */
     applyResponseImpulse: function(contact, a, b, velAlongNormal) {
 
         var rax = contact.x - a.position.x,
@@ -115,7 +106,6 @@ Manifold.prototype = {
 
     },
 
-    /** @private */
     applyFrictionImpulse: function(contact, a, b, j, imSum, rax, ray, rbx, rby) {
 
         var rvx = this.getRelativeVelocityX(contact, a, b),
@@ -158,7 +148,6 @@ Manifold.prototype = {
 
     },
 
-    /** @private */
     correctPositions: function() {
 
         var a = this.a,
@@ -181,7 +170,6 @@ Manifold.prototype = {
 
     },
 
-    /** @private */
     getMassSum: function(a, b, rax, ray, rbx, rby) {
         var raCrossN = rax * this.normal.y - ray * this.normal.x,
             rbCrossN = rbx * this.normal.y - rby * this.normal.x;
@@ -190,13 +178,11 @@ Manifold.prototype = {
                            + rbCrossN * rbCrossN * b.iI;
     },
 
-    /** @private */
     getRelativeVelocityX: function(contact, a, b) {
         return b.velocity.x + (-b.angularVelocity * (contact.y - b.position.y))
              - a.velocity.x - (-a.angularVelocity * (contact.y - a.position.y));
     },
 
-    /** @private */
     getRelativeVelocityY: function(contact, a, b) {
         return b.velocity.y + (b.angularVelocity * (contact.x - b.position.x))
              - a.velocity.y - (a.angularVelocity * (contact.x - a.position.x));
