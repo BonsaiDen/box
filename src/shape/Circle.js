@@ -9,8 +9,8 @@
   * -> {Circle} (Body): Representation of a Circle collision shape
   */
 function Circle(position, radius, mass, inertia) {
-    Body.call(this, Circle.ShapeID, position, mass, inertia);
     this.radius = radius;
+    Body.call(this, Circle.ShapeID, position, mass, inertia);
 }
 
 // Statics --------------------------------------------------------------------

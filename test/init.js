@@ -27,6 +27,7 @@ describe('Box', function() {
         var world = new Box.World(new Box.Vec2(0, 100));
         world.addBody(new Box.AABB(new Box.Vec2(0, 0), new Box.Vec2(100, 20)));
         world.addBody(new Box.AABB(new Box.Vec2(0, -30), new Box.Vec2(20, 20), 1));
+        world.addBody(new Box.Circle(new Box.Vec2(0, -30), 20, 1));
 
         var i = 0;
         while(i < 100) {
