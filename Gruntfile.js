@@ -152,9 +152,20 @@ module.exports = function(grunt) {
             return ' - __' + m.name + '__( ' + toSignature(m.params) + ' )' + toType(m.type);
         }
 
+        function toField(f) {
+            return ' - __' + f.name + '__ *' + f.type + '*: ' + f.description;
+        }
+
         function toClass(clas) {
 
             var text = '## ' + toConstructor(clas) + '\n\n' + clas.description;
+
+            text += '\n\n#### Instance Fields\n\n';
+
+            text += clas.fields.map(function(f) {
+                return toField(f);
+
+            }).join('\n\n');
 
             text += '\n\n#### Static Fields\n\n';
 

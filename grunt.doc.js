@@ -37,7 +37,7 @@ function parseDocStruct(text, name, isConstructor) {
     }
 
     var typeAndDesc = trimArray(text.split(':')),
-        typeAndDefault = typeAndDesc[0].match(/\{([a-zA-Z_0-9\.\$]+)\}\s*(\((.*)\))?/),
+        typeAndDefault = typeAndDesc[0].match(/\{([a-zA-Z_0-9\.\$\[\]]+)\}\s*(\((.*)\))?/),
         defaultValue = typeAndDefault ? typeAndDefault[3] || null : null;
 
     return {

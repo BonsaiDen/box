@@ -99,7 +99,20 @@ function isInheritCall(node) {
     }
 }
 
-function isStaticProperty(node) {
+function isProperty(node) {
+
+    if (node.type === 'AssignmentExpression'
+        && node.left.type === 'MemberExpression'
+        && node.left.object.type === 'ThisExpression'
+        && node.left.property.type === 'Identifier') {
+
+        return true;
+
+    }
+
+}
+
+function isStaticProperty(node, parent) {
     if (node.type === 'AssignmentExpression'
         && node.left.type === 'MemberExpression') {
 
@@ -118,13 +131,20 @@ function isStaticProperty(node) {
 function extractMethods(properties) {
     return properties.map(function(method) {
         return {
-            doc: method.leadingComments,
+            name: method.key.name,
             params: method.value.params.map(function(p) {
                 return p.name;
             }),
-            name: method.key.name
+            doc: method.leadingComments
         };
     });
+}
+
+function extracProperty(node, parent) {
+    return {
+        name: node.left.property.name,
+        doc: parent.leadingComments
+    };
 }
 
 function extractConstructor(node) {
@@ -135,6 +155,7 @@ function extractConstructor(node) {
         params: node.params.map(function(p) {
             return p.name;
         }),
+        properties: traverse(node, isProperty, extracProperty),
         statics: [],
         methods: []
     };
@@ -225,8 +246,22 @@ exports.parse = function(source) {
 
                 name: ctor.name,
                 base: ctor.doc.returns ? ctor.doc.returns.base : null,
-                params: ctor.doc.params,
                 description: ctor.doc.returns.description,
+                params: ctor.doc.params,
+
+                // Parse all fields
+                fields: ctor.properties.filter(function(member) {
+                        doc.parse(member);
+                        return member.doc;
+
+                    }).map(function(member) {
+                        var returns = member.doc.returns || {};
+                        return {
+                            name: member.name,
+                            type: returns.type || null,
+                            description: returns.description || null
+                        };
+                    }),
 
                 // Find all methods belonging to this ctor and filter non public methods
                 methods: methods.filter(function(method) {
@@ -249,12 +284,12 @@ exports.parse = function(source) {
                         return st.base === ctor.name && st.doc;
 
                     }).map(function(st) {
-                        var param = st.doc.returns || {};
+                        var returns = st.doc.returns || {};
                         return {
                             name: st.property,
-                            type: param.type || null,
-                            value: param.defaultValue || null,
-                            description: param.description || null
+                            type: returns.type || null,
+                            value: returns.defaultValue || null,
+                            description: returns.description || null
                         };
                     })
 

@@ -1,6 +1,7 @@
 ## Box - Simple Physics
 
-**Box** is a simple 2D physics engine written in JavaScript. It's primary focus is to be used in very simple games where only basic collisions features are needed, although it will probably get extend with advanced features in the future.
+**Box** is a simple 2D physics engine written in JavaScript. 
+It's primary focus is to be used in very simple games where only basic collisions features are needed, although it will probably get extend with advanced features in the future.
 
 __Highlights__
 
@@ -35,7 +36,17 @@ Auto generated API documentation is available [here](https://github.com/BonsaiDe
 
 
 
-### Tutorial
+### Upcoming Features
+
+- Finalized public API
+- Collision groups and layers
+- **OBB** and **Polygon** shapes
+- Additional contact point information
+- Speed ups for huge scenes by applying spacial partioning
+
+
+
+## Tutorial
 
 __Setting up your World__
 
@@ -91,15 +102,6 @@ Coming soon.
 __Dealing with contacts__
 
 Coming soon.
-
-
-### Upcoming Features
-
-- Finalized public API
-- Collision groups and layers
-- **OBB** and **Polygon** shapes
-- Additional contact point information
-- Speed ups for huge scenes by applying spacial partioning
 
 
 ## License
