@@ -20,11 +20,11 @@ Abstract representation of a phyiscal body within a World.
 
  - __orientation__ *Double*: Orientation in radians.
 
- - __restitution__ *null*: {Double} "Bounciness" of the object's surface.
+ - __restitution__ *Double*: "Bounciness" of the object's surface.
 
- - __staticFriction__ *null*: {Double} Friction when the body is at rest.
+ - __staticFriction__ *Double*: Friction when the body is at rest.
 
- - __kineticFriction__ *null*: {Double} Friction when the body is in motion.
+ - __kineticFriction__ *Double*: Friction when the body is in motion.
 
  - __id__ *Integer*: Unique ID of this body.
 
