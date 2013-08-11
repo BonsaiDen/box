@@ -6,7 +6,7 @@
   * {Double} (0.0): Mass of the Circle;
   * {Double} (0.0): Inertia of the Circle;
   *
-  * -> {Circle} (Body): Logical representation of a Circle collision shape
+  * -> {Circle} (Body): Representation of a Circle collision shape
   */
 function Circle(position, radius, mass, inertia) {
     Body.call(this, Circle.ShapeID, position, mass, inertia);

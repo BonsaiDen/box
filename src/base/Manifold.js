@@ -1,6 +1,6 @@
 // Class ----------------------------------------------------------------------
 
-/** -> {Manifold}: Wrapper construct for a collision between two {Body}'s */
+/** -> {Manifold}: Wrapper construct for a collision between two bodies */
 function Manifold() {
 
     // Bodies

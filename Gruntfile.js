@@ -141,35 +141,43 @@ module.exports = function(grunt) {
         }
 
         function toConstructor(c) {
-            return c.name + (c.base ? '[' + c.base + ']' : '') + '(' + toSignature(c.params) + ')';
+            return c.name + '( ' + toSignature(c.params) + ' )' + (c.base ? ' < ' + c.base : '');
         }
 
         function toStatic(s) {
-            return ' - ' + '*' + s.type + '* __' + s.name + '__' + (s.value ? ' = ' + s.value : '');
+            return ' - __' + s.name + '__ *' + s.type + '* ' + (s.value ? ' = ' + s.value : '');
         }
 
         function toMethod(m) {
-            return ' - __' + m.name + '__(' + toSignature(m.params) + ')' + toType(m.type);
+            return ' - __' + m.name + '__( ' + toSignature(m.params) + ' )' + toType(m.type);
         }
 
         function toClass(clas) {
 
             var text = '## ' + toConstructor(clas) + '\n\n' + clas.description;
 
+            text += '\n\n#### Static Fields\n\n';
+
             if (clas.statics.length) {
-                text += '\n\n#### Static Fields\n\n';
                 text += clas.statics.map(function(s) {
                     return toStatic(s);
 
                 }).join('\n\n');
+
+            } else {
+                text += '*None*\n';
             }
 
+            text += '\n\n#### Methods\n\n';
+
             if (clas.methods.length) {
-                text += '\n\n#### Methods\n\n';
                 text += clas.methods.map(function(m) {
                     return toMethod(m) + '\n\n    ' + m.description;
 
                 }).join('\n\n');
+
+            } else {
+                text += '*None*\n';
             }
 
             return text;
@@ -177,7 +185,7 @@ module.exports = function(grunt) {
         }
 
         console.log('Generating documentation for "lib/box.js"...');
-        var out = doc.list.map(toClass).join('\n\n');
+        var out = doc.list.map(toClass).join('\n\n----------------\n\n');
         grunt.file.write('DOC.md', out);
 
     });

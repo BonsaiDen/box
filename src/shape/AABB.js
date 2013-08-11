@@ -6,7 +6,7 @@
   * {Double} (0.0): Mass of the AABB;
   * {Double} (0.0): Inertia of the AABB;
   *
-  * -> {AABB} (Body): Logical representation of a Axis Aligned Bounding Box collision shape
+  * -> {AABB} (Body): Representation of a Axis Aligned Bounding Box collision shape
   */
 function AABB(position, extend, mass, inertia) {
     this.extend = new Vec2(extend.x, extend.y);

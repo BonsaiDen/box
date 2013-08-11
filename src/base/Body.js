@@ -6,7 +6,7 @@
   * {Double} (0.0): Mass of the body;
   * {Double} (0.0): Inertia of the body;
   *
-  * -> {Body}: Logical representation of a phyiscal body within a {World}
+  * -> {Body}: Abstract representation of a phyiscal body within a World
   */
 function Body(shapeId, position, mass, inertia) {
 
