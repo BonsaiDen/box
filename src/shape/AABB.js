@@ -11,11 +11,11 @@
   */
 function AABB(position, extend, mass, inertia) {
 
+    Body.call(this, AABB, position, mass, inertia);
+
     this.extend = new Vec2(extend.x, extend.y);
     this.min = new Vec2(0.0, 0.0);
     this.max = new Vec2(0.0, 0.0);
-
-    Body.call(this, AABB, position, mass, inertia);
 
 }
 
@@ -26,6 +26,7 @@ AABB.ShapeID = 0;
 // Methods --------------------------------------------------------------------
 inherit(AABB, Body, {
 
+    /** @private */
     update: function() {
 
         this.min.x = this.position.x - this.extend.x;

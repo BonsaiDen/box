@@ -10,8 +10,8 @@
   * @param {float} mass - The mass of the AABB. Can be any positive value greater than zero. Zero is special and gives the AABB infinite mass.
   */
 function Circle(position, radius, mass, inertia) {
-    this.radius = radius;
     Body.call(this, Circle, position, mass, inertia);
+    this.radius = radius;
 }
 
 // Statics --------------------------------------------------------------------

@@ -1,5 +1,10 @@
 // Class ----------------------------------------------------------------------
-/** @private */
+
+/**
+  * @desc Construct enclosing the collision between two {Body} instances.
+  * @constructor
+  * @private
+  */
 function Manifold() {
 
     // Bodies
@@ -84,6 +89,7 @@ Manifold.prototype = {
 
     },
 
+    /** @private */
     applyResponseImpulse: function(contact, a, b, velAlongNormal) {
 
         var rax = contact.x - a.position.x,
@@ -109,6 +115,7 @@ Manifold.prototype = {
 
     },
 
+    /** @private */
     applyFrictionImpulse: function(contact, a, b, j, imSum, rax, ray, rbx, rby) {
 
         var rvx = this.getRelativeVelocityX(contact, a, b),

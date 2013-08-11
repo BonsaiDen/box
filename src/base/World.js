@@ -44,6 +44,10 @@ World.EPSILON = EPSILON;
 // Methods --------------------------------------------------------------------
 World.prototype = {
 
+    /**
+      * @desc Performs an update on all bodies in the world, advancing each of them by `dt` seconds.
+      * @param dt {Double} - Number of seconds to advance the world
+      */
     update: function(dt) {
 
         // Perform the world update in smaller steps
@@ -61,18 +65,39 @@ World.prototype = {
 
     },
 
-    add: function(box) {
-        if (box.im !== 0) {
-            this._dynamics.push(box);
+    /**
+      * @desc Adds a {Body} to the world
+      * @param {Body} body
+      *
+      * @returns {Boolean} Whether or not the body was actually added.
+      */
+    addBody: function(body) {
+        if (body.im !== 0) {
+            this._dynamics.push(body);
 
         } else {
-            this._statics.push(box);
+            this._statics.push(body);
         }
     },
 
-    remove: function(box) {
-        this._statics.splice(this._statics.indexOf(box), 1);
-        this._dynamics.splice(this._dynamics.indexOf(box), 1);
+    /**
+      * @desc Removes a {Body} from the world
+      * @param {Body} body
+      *
+      * @returns {Boolean} Whether or not the body was actually removed
+      */
+    removeBody: function(body) {
+        this._statics.splice(this._statics.indexOf(body), 1);
+        this._dynamics.splice(this._dynamics.indexOf(body), 1);
+    },
+
+    /**
+      * @desc Returns whether or not a {Body} is contained by this world
+      * @returns {Boolean}
+      */
+    containsBody: function(body) {
+        return this._statics.indexOf(body) !== -1
+            || this._dynamics.indexOf(body) !== -1;
     },
 
 
